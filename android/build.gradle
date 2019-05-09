@@ -17,7 +17,7 @@ android {
         exclude 'META-INF/robovm/ios/robovm.xml'
     }
     defaultConfig {
-        applicationId "com.cod3rboy.asteroids"
+        applicationId "com.cod3rboy.pewdew"
         minSdkVersion 9
         targetSdkVersion 27
         versionCode 1
