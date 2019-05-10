@@ -11,8 +11,8 @@ public class DesktopLauncher {
 		config.width = 1000;
 		config.height = 800;
 		config.useGL30 = false;
-		config.fullscreen = false;
-		config.resizable = false;
+		config.fullscreen = true;
+		config.resizable = true;
 		new LwjglApplication(new PewDew(), config);
 	}
 }

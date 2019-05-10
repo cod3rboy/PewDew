@@ -25,10 +25,10 @@ public class Bullet extends SpaceObject {
         dx = MathUtils.cos(radians) * speed;
         dy = MathUtils.sin(radians) * speed;
 
-        width = height = 2;
+        width = height = 3;
 
         lifeTimer = 0;
-        lifeTime = 1;
+        lifeTime = 1.2f;
 
         bulletColor = new Color(1,1,1,1);
         isFlashingBullet = isFlashing;

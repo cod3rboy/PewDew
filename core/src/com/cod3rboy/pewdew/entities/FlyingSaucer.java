@@ -72,42 +72,42 @@ public class FlyingSaucer extends SpaceObject {
     }
     private void setShape(){
         if(type == LARGE){
-            shapex[0] = x - 10;
+            shapex[0] = x - 16;
+            shapey[0] = y;
+
+            shapex[1] = x - 5;
+            shapey[1] = y - 8;
+
+            shapex[2] = x + 5;
+            shapey[2] = y - 8;
+
+            shapex[3] = x + 16;
+            shapey[3] = y;
+
+            shapex[4] = x + 5;
+            shapey[4] = y + 8;
+
+            shapex[5] = x - 5;
+            shapey[5] = y + 8;
+
+        }else if(type == SMALL){
+            shapex[0] = x - 12;
             shapey[0] = y;
 
             shapex[1] = x - 3;
-            shapey[1] = y - 5;
+            shapey[1] = y - 6;
 
             shapex[2] = x + 3;
-            shapey[2] = y - 5;
+            shapey[2] = y - 6;
 
-            shapex[3] = x + 10;
+            shapex[3] = x + 12;
             shapey[3] = y;
 
             shapex[4] = x + 3;
-            shapey[4] = y + 5;
+            shapey[4] = y + 6;
 
             shapex[5] = x - 3;
-            shapey[5] = y + 5;
-
-        }else if(type == SMALL){
-            shapex[0] = x - 6;
-            shapey[0] = y;
-
-            shapex[1] = x - 2;
-            shapey[1] = y - 3;
-
-            shapex[2] = x + 2;
-            shapey[2] = y - 3;
-
-            shapex[3] = x + 6;
-            shapey[3] = y;
-
-            shapex[4] = x + 2;
-            shapey[4] = y + 3;
-
-            shapex[5] = x - 2;
-            shapey[5] = y + 3;
+            shapey[5] = y + 6;
 
         }
     }

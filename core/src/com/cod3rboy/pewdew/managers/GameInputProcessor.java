@@ -4,6 +4,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 
 public class GameInputProcessor extends InputAdapter {
+    private TouchListener listener;
     @Override
     public boolean keyDown(int keycode) {
         if(keycode == Input.Keys.UP){
@@ -60,5 +61,36 @@ public class GameInputProcessor extends InputAdapter {
             GameKeys.setKey(GameKeys.SHIFT, false);
         }
         return true;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        if(listener != null) listener.touchDown(screenX, screenY, pointer, button);
+        return super.touchDown(screenX, screenY, pointer, button);
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        if(listener != null) listener.touchUp(screenX, screenY, pointer, button);
+        return super.touchUp(screenX, screenY, pointer, button);
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        if(listener != null) listener.touchDragged(screenX, screenY, pointer);
+        return super.touchDragged(screenX, screenY, pointer);
+    }
+
+    public void registerTouchListener(TouchListener listener) {
+        this.listener = listener;
+    }
+    public void unregisterTouchListener(){
+        this.listener = null;
+    }
+
+    public interface TouchListener{
+        boolean touchDown(int screenX, int ScreenY, int pointer, int button);
+        boolean touchUp(int screenX, int ScreenY, int pointer, int button);
+        boolean touchDragged(int screenX, int ScreenY, int pointer);
     }
 }

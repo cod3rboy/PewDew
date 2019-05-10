@@ -1,8 +1,8 @@
 package com.cod3rboy.pewdew.managers;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,10 +15,11 @@ public class Save {
     public static final String saveFileName = "highscores.sav";
 
     public static void save(){
+        FileHandle saveFileHandle = Gdx.files.local(saveFileName);
         ObjectOutputStream out = null;
         try{
             out = new ObjectOutputStream(
-                    new FileOutputStream(saveFileName)
+                    new FileOutputStream(saveFileHandle.file())
             );
             out.writeObject(gd);
         }catch(IOException e){
@@ -36,16 +37,16 @@ public class Save {
         }
     }
     public static void load(){
-
         if(!saveFileExists()) {
             init();
             return;
         }
 
+        FileHandle saveFileHandle = Gdx.files.local(saveFileName);
         ObjectInputStream in = null;
         try{
             in = new ObjectInputStream(
-                    new FileInputStream(saveFileName)
+                    new FileInputStream(saveFileHandle.file())
             );
             gd = (GameData) in.readObject();
         }catch(IOException e){
@@ -66,8 +67,8 @@ public class Save {
         }
     }
     public static boolean saveFileExists(){
-        File f = new File(saveFileName);
-        return f.exists();
+        FileHandle saveFileHandle = Gdx.files.local(saveFileName);
+        return saveFileHandle.exists();
     }
 
     public static void init(){

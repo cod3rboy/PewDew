@@ -2,11 +2,10 @@ package com.cod3rboy.pewdew.entities;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import com.cod3rboy.pewdew.PewDew;
 import com.cod3rboy.pewdew.managers.Jukebox;
 
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 public class Player extends SpaceObject {
@@ -31,8 +30,8 @@ public class Player extends SpaceObject {
     private boolean hit;
     private boolean dead;
 
-    private Line2D.Float[] hitLines;
-    private Point2D.Float[] hitLinesVector;
+    private Line2D[] hitLines;
+    private Vector2[] hitLinesVector;
     private float hitTimer;
     private float hitTime;
 
@@ -65,28 +64,29 @@ public class Player extends SpaceObject {
         score = 0;
         extraLives = 3;
         requiredScore = 6000;
+
     }
 
     private void setShape() {
-        shapex[0] = x + MathUtils.cos(radians) * 8;
-        shapey[0] = y + MathUtils.sin(radians) * 8;
+        shapex[0] = x + MathUtils.cos(radians) * 10;
+        shapey[0] = y + MathUtils.sin(radians) * 10;
 
-        shapex[1] = x + MathUtils.cos(radians - 4 * MathUtils.PI / 5) * 8;
-        shapey[1] = y + MathUtils.sin(radians - 4 * MathUtils.PI / 5) * 8;
+        shapex[1] = x + MathUtils.cos(radians - 4 * MathUtils.PI / 5) * 15;
+        shapey[1] = y + MathUtils.sin(radians - 4 * MathUtils.PI / 5) * 15;
 
         shapex[2] = x + MathUtils.cos(radians + MathUtils.PI) * 5;
         shapey[2] = y + MathUtils.sin(radians + MathUtils.PI) * 5;
 
-        shapex[3] = x + MathUtils.cos(radians + 4 * MathUtils.PI / 5) * 8;
-        shapey[3] = y + MathUtils.sin(radians + 4 * MathUtils.PI / 5) * 8;
+        shapex[3] = x + MathUtils.cos(radians + 4 * MathUtils.PI / 5) * 15;
+        shapey[3] = y + MathUtils.sin(radians + 4 * MathUtils.PI / 5) * 15;
     }
 
     private void setFlame() {
         flamex[0] = x + MathUtils.cos(radians - 5 * MathUtils.PI / 6) * 5;
         flamey[0] = y + MathUtils.sin(radians - 5 * MathUtils.PI / 6) * 5;
 
-        flamex[1] = x + MathUtils.cos(radians - MathUtils.PI) * (6 + acceleratingTimer * 50);
-        flamey[1] = y + MathUtils.sin(radians - MathUtils.PI) * (6 + acceleratingTimer * 50);
+        flamex[1] = x + MathUtils.cos(radians - MathUtils.PI) * (10 + acceleratingTimer * 50);
+        flamey[1] = y + MathUtils.sin(radians - MathUtils.PI) * (10 + acceleratingTimer * 50);
 
         flamex[2] = x + MathUtils.cos(radians + 5 * MathUtils.PI / 6) * 5;
         flamey[2] = y + MathUtils.sin(radians + 5 * MathUtils.PI / 6) * 5;
@@ -107,6 +107,10 @@ public class Player extends SpaceObject {
             Jukebox.stop("thruster");
         }
         up = b;
+    }
+
+    public void setRotation(float radians){
+        this.radians = radians;
     }
 
     public void setPosition(float x, float y){
@@ -145,25 +149,26 @@ public class Player extends SpaceObject {
 
         Jukebox.stop("thruster");
 
-        hitLines = new Line2D.Float[4];
+        hitLines = new Line2D[4];
+
         for (int i = 0, j = hitLines.length - 1; i < hitLines.length; j = i++) {
-            hitLines[i] = new Line2D.Float(shapex[i], shapey[i], shapex[j], shapey[j]);
+            hitLines[i] = new Line2D(shapex[i], shapey[i], shapex[j], shapey[j]);
         }
-        hitLinesVector = new Point2D.Float[4];
-        hitLinesVector[0] = new Point2D.Float(
+        hitLinesVector = new Vector2[4];
+        hitLinesVector[0] = new Vector2(
                 MathUtils.cos(radians + 1.5f),
                 MathUtils.sin(radians + 1.5f)
         );
 
-        hitLinesVector[1] = new Point2D.Float(
+        hitLinesVector[1] = new Vector2(
                 MathUtils.cos(radians - 1.5f),
                 MathUtils.sin(radians - 1.5f)
         );
-        hitLinesVector[2] = new Point2D.Float(
+        hitLinesVector[2] = new Vector2(
                 MathUtils.cos(radians - 2.8f),
                 MathUtils.sin(radians - 2.8f)
         );
-        hitLinesVector[3] = new Point2D.Float(
+        hitLinesVector[3] = new Vector2(
                 MathUtils.cos(radians + 2.8f),
                 MathUtils.sin(radians + 2.8f)
         );
@@ -183,10 +188,10 @@ public class Player extends SpaceObject {
             } else {
                 for (int i = 0; i < hitLines.length; i++) {
                     hitLines[i].setLine(
-                            hitLines[i].x1 + hitLinesVector[i].x * 10 * dt,
-                            hitLines[i].y1 + hitLinesVector[i].y * 10 * dt,
-                            hitLines[i].x2 + hitLinesVector[i].x * 10 * dt,
-                            hitLines[i].y2 + hitLinesVector[i].y * 10 * dt
+                            hitLines[i].x1() + hitLinesVector[i].x * 10 * dt,
+                            hitLines[i].y1() + hitLinesVector[i].y * 10 * dt,
+                            hitLines[i].x2() + hitLinesVector[i].x * 10 * dt,
+                            hitLines[i].y2() + hitLinesVector[i].y * 10 * dt
                     );
                 }
             }
@@ -249,10 +254,10 @@ public class Player extends SpaceObject {
         if (hit) {
             for (int i = 0; i < hitLines.length; i++) {
                 sr.line(
-                        hitLines[i].x1,
-                        hitLines[i].y1,
-                        hitLines[i].x2,
-                        hitLines[i].y2
+                        hitLines[i].x1(),
+                        hitLines[i].y1(),
+                        hitLines[i].x2(),
+                        hitLines[i].y2()
                 );
             }
             sr.end();
@@ -276,5 +281,31 @@ public class Player extends SpaceObject {
         }
         sr.end();
 
+    }
+
+    class Line2D{
+        private Vector2 point1;
+        private Vector2 point2;
+
+        public Line2D(float x1, float y1, float x2, float y2){
+            point1 = new Vector2();
+            point2 = new Vector2();
+            point1.x = x1;
+            point1.y = y1;
+            point2.x = x2;
+            point2.y = y2;
+        }
+
+        public float x1(){ return point1.x; }
+        public float x2(){ return point2.x; }
+        public float y1(){ return point1.y; }
+        public float y2(){ return point2.y; }
+
+        public void setLine(float x1, float y1, float x2, float y2){
+            point1.x = x1;
+            point1.y = y1;
+            point2.x = x2;
+            point2.y = y2;
+        }
     }
 }

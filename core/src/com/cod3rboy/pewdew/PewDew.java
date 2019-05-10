@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.cod3rboy.pewdew.managers.GameInputProcessor;
 import com.cod3rboy.pewdew.managers.GameKeys;
 import com.cod3rboy.pewdew.managers.GameStateManager;
@@ -13,19 +14,23 @@ public class PewDew extends ApplicationAdapter {
 	public static int WIDTH;
 	public static int HEIGHT;
 	public static OrthographicCamera cam;
-
+	private static FitViewport viewport;
 	private GameStateManager gsm;
 
 	@Override
 	public void create() {
-		WIDTH = 500;
-		HEIGHT = 400;
-		cam = new OrthographicCamera(WIDTH,HEIGHT);
+	    // Keep aspect ratio in mind while setting width and height
+		WIDTH = 800;
+		HEIGHT = 450;
+		cam = new OrthographicCamera(WIDTH, HEIGHT);
+		viewport = new FitViewport(WIDTH, HEIGHT,cam);
+		viewport.apply();
 		cam.translate(WIDTH/2, HEIGHT/2);
 		cam.update();
 		Gdx.input.setInputProcessor(new GameInputProcessor());
 
 		// Load sounds
+		Jukebox.load("sounds/keypress.ogg", "keypress");
 		Jukebox.load("sounds/explode.ogg", "explode");
 		Jukebox.load("sounds/extralife.ogg", "extralife");
 		Jukebox.load("sounds/largesaucer.ogg", "largesaucer");
@@ -45,6 +50,7 @@ public class PewDew extends ApplicationAdapter {
 
 	@Override
 	public void resize(int width, int height) {
+		viewport.update(width, height);
 	}
 
 	@Override

@@ -19,7 +19,7 @@ public class GameData implements Serializable {
     public void init(){
         for(int i=0; i<MAX_SCORES; i++){
             highScores[i] = 0;
-            names[i] = "---";
+            names[i] = "------";
         }
     }
 
