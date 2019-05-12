@@ -6,19 +6,24 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.cod3rboy.pewdew.PewDew;
+import com.cod3rboy.pewdew.entities.Star;
 import com.cod3rboy.pewdew.managers.GameKeys;
 import com.cod3rboy.pewdew.managers.GameStateManager;
 import com.cod3rboy.pewdew.managers.Jukebox;
 import com.cod3rboy.pewdew.managers.Save;
+
+import java.util.ArrayList;
 
 public class GameOverState extends GameState {
 
     private SpriteBatch sb;
     private ShapeRenderer sr;
     private boolean newHighScore;
+    private long score;
     private char[] newName;
     private int currentChar;
 
@@ -42,11 +47,19 @@ public class GameOverState extends GameState {
     private GlyphLayout keyLayout;
     private boolean keyTouched = false;
 
+    private ArrayList<Star> starField;
+    private float starSpawnTimer;
+    private final float starSpawnTime = 0.25f;
+    private final int MAX_STARS = 250; // Maximum number of stars allowed on screen at a time
+    private final int STARS_PER_TIMEOUT = 36; // Number of stars to spawn at one shot
+    private final float MIN_DIST_CENTER = 20;
+
     @Override
     public void init() {
         sb = new SpriteBatch();
         sr = new ShapeRenderer();
-        newHighScore = Save.gd.isHighScore(Save.gd.getTentativeScore());
+        score = Save.gd.getTentativeScore();
+        newHighScore = Save.gd.isHighScore(score);
         if (newHighScore) {
             newName = new char[]{'A', 'A', 'A', 'A', 'A', 'A'};
             currentChar = 0;
@@ -76,17 +89,150 @@ public class GameOverState extends GameState {
         param.size = 15;
         keyFont = gen.generateFont(param);
         keyLayout = new GlyphLayout();
+
+        starField = new ArrayList<Star>();
+        starSpawnTimer = 0;
+        spawnStars();
+
+
+        if(GameStateManager.getMusicSetting()) {
+            // Play background gameover music
+            Jukebox.playBackgroundMusic("gameover");
+        }
+
+    }
+
+    private void spawnStars() {
+        if (starField.size() >= MAX_STARS) return;
+
+        int starsPerSide = STARS_PER_TIMEOUT / 4;
+
+        float gap = 40; // For same horizontal gap and vertical gap
+
+        // Spawn stars on bottom side
+        for(int i=0; i<starsPerSide; i++){
+            float x = MathUtils.random(PewDew.WIDTH);
+            float y = MathUtils.random(gap);
+            float direction = MathUtils.atan2(PewDew.HEIGHT/2 - y, PewDew.WIDTH/2 - x);
+
+            Star s = new Star(x, y ,direction);
+            // Set random Color
+            s.setColor(
+                    MathUtils.random(1f),
+                    MathUtils.random(1f),
+                    MathUtils.random(1f),
+                    1
+            );
+            // Set random speed
+            s.setSpeed(MathUtils.random(100,200));
+            s.setDecrementRadius(true);
+            s.setRadius(1.5f);
+            s.setDeltaRadius(0.3f);
+            starField.add(s);
+        }
+
+        // Spawn stars on left side
+        for(int i=0; i<starsPerSide; i++){
+            float x = MathUtils.random(gap);
+            float y = MathUtils.random(PewDew.HEIGHT);
+            float direction = MathUtils.atan2(PewDew.HEIGHT/2 - y, PewDew.WIDTH/2 - x);
+
+            Star s = new Star(x, y ,direction);
+            // Set random Color
+            s.setColor(
+                    MathUtils.random(1f),
+                    MathUtils.random(1f),
+                    MathUtils.random(1f),
+                    1
+            );
+            // Set random speed
+            s.setSpeed(MathUtils.random(100,200));
+            s.setDecrementRadius(true);
+            s.setRadius(1.5f);
+            s.setDeltaRadius(0.3f);
+            starField.add(s);
+        }
+
+        // Spawn stars on top side
+        for(int i=0; i<starsPerSide; i++){
+            float x = MathUtils.random(PewDew.WIDTH);
+            float y = MathUtils.random(PewDew.HEIGHT-gap, PewDew.HEIGHT);
+            float direction = MathUtils.atan2(PewDew.HEIGHT/2 - y, PewDew.WIDTH/2 - x);
+
+            Star s = new Star(x, y ,direction);
+            // Set random Color
+            s.setColor(
+                    MathUtils.random(1f),
+                    MathUtils.random(1f),
+                    MathUtils.random(1f),
+                    1
+            );
+            // Set random speed
+            s.setSpeed(MathUtils.random(100,200));
+            s.setDecrementRadius(true);
+            s.setRadius(1.5f);
+            s.setDeltaRadius(0.3f);
+            starField.add(s);
+        }
+
+        // Spawn stars on right side
+        for(int i=0; i<starsPerSide; i++){
+            float x = MathUtils.random(PewDew.WIDTH-gap, PewDew.WIDTH);
+            float y = MathUtils.random(PewDew.HEIGHT);
+            float direction = MathUtils.atan2(PewDew.HEIGHT/2 - y, PewDew.WIDTH/2 - x);
+
+            Star s = new Star(x, y ,direction);
+            // Set random Color
+            s.setColor(
+                    MathUtils.random(1f),
+                    MathUtils.random(1f),
+                    MathUtils.random(1f),
+                    1
+            );
+            // Set random speed
+            s.setSpeed(MathUtils.random(100,200));
+            s.setDecrementRadius(true);
+            s.setRadius(1.5f);
+            s.setDeltaRadius(0.3f);
+            starField.add(s);
+        }
     }
 
     @Override
     public void update(float dt) {
         handleInput();
+        // Add new stars to the star field
+        starSpawnTimer += dt;
+        if (starSpawnTimer >= starSpawnTime) {
+            // Time out
+            starSpawnTimer = 0;
+            spawnStars();
+        }
+
+        // Update stars in star field
+        for (int i = 0; i < starField.size(); i++) {
+            Star s = starField.get(i);
+            s.update(dt);
+            double xDist = (PewDew.WIDTH/2f) - s.getX();
+            double yDist = (PewDew.HEIGHT/2f) - s.getY();
+            double dist = Math.sqrt(xDist * xDist + yDist * yDist);
+            if(dist < MIN_DIST_CENTER) {
+                starField.remove(i);
+                i--;
+            }
+        }
     }
 
     @Override
     public void draw() {
         sb.setProjectionMatrix(PewDew.cam.combined);
         sr.setProjectionMatrix(PewDew.cam.combined);
+
+        // draw starfield
+        for (int i = 0; i < starField.size(); i++) {
+            starField.get(i).draw(sr);
+        }
+
         sb.begin();
         String s;
         float w,h;
@@ -102,45 +248,53 @@ public class GameOverState extends GameState {
         continueBounds.set(10,PewDew.HEIGHT - 40,gLayout.width,gLayout.height);
         font.draw(sb,gLayout,continueBounds.x, continueBounds.y + continueBounds.height);
 
-        if (!newHighScore) {
+        if (newHighScore) { // If it is a new Highscore
+
+            s = "New High Score : " + Save.gd.getTentativeScore();
+            gLayout.setText(font, s);
+            w = gLayout.width;
+            font.draw(sb, gLayout, (PewDew.WIDTH - w) / 2, h);
+            h -= gLayout.height + 20;
+
+            gLayout.setText(font, "ZZZZZZ"); // Set a fixed text width
+            w = gLayout.width;
+            float xAlign = (PewDew.WIDTH - w) / 2;
+            for (int i = 0; i < newName.length; i++) {
+                gLayout.setText(font, Character.toString(newName[i]));
+                font.draw(sb, gLayout, xAlign + 20 * i, h);
+            }
+            h -= gLayout.height + 5;
             sb.end();
+
+            sr.setColor(1,1,0,1);
+            sr.begin(ShapeRenderer.ShapeType.Line);
+            sr.line(
+                    xAlign + 20 * currentChar,
+                    h,
+                    xAlign + gLayout.width + 20 * currentChar,
+                    h
+            );
+            sr.end();
+
+            sb.begin();
+            drawKeys(sb);
+            sb.end();
+
+            // Draw key bounds
+            sr.begin(ShapeRenderer.ShapeType.Line);
+            for(int i=0; i<keyBounds.length; i++){
+                sr.setColor(MathUtils.random(.5f, 1f),MathUtils.random(1f),MathUtils.random(1f),1);
+                sr.rect(keyBounds[i].x,keyBounds[i].y,keyBounds[i].width,keyBounds[i].height);
+            }
+            sr.end();
             return;
         }
-        s = "New High Score : " + Save.gd.getTentativeScore();
-        gLayout.setText(font, s);
-        w = gLayout.width;
-        font.draw(sb, gLayout, (PewDew.WIDTH - w) / 2, h);
-        h -= gLayout.height + 20;
 
-        gLayout.setText(font, "ZZZZZZ"); // Set a fixed text width
-        w = gLayout.width;
-        float xAlign = (PewDew.WIDTH - w) / 2;
-        for (int i = 0; i < newName.length; i++) {
-            gLayout.setText(font, Character.toString(newName[i]));
-            font.draw(sb, gLayout, xAlign + 20 * i, h);
-        }
-        h -= gLayout.height + 2;
+        // Not new highscore
+        gameOverFont.setColor(1,1,1,1);
+        gLayout.setText(gameOverFont, String.format("Score : %d", score));
+        gameOverFont.draw(sb,gLayout,(PewDew.WIDTH-gLayout.width)/2, (PewDew.HEIGHT-gLayout.height)/2);
         sb.end();
-
-        sr.begin(ShapeRenderer.ShapeType.Line);
-        sr.line(
-                xAlign + 20 * currentChar,
-                h,
-                xAlign + gLayout.width + 20 * currentChar,
-                h
-        );
-        sr.end();
-
-        sb.begin();
-        drawKeys(sb);
-        sb.end();
-
-        // Draw key bounds
-        sr.begin(ShapeRenderer.ShapeType.Line);
-        for(int i=0; i<keyBounds.length; i++){
-            sr.rect(keyBounds[i].x,keyBounds[i].y,keyBounds[i].width,keyBounds[i].height);
-        }
-        sr.end();
     }
 
     private void drawKeys(SpriteBatch sb){
@@ -252,5 +406,6 @@ public class GameOverState extends GameState {
         sr.dispose();
         gameOverFont.dispose();
         font.dispose();
+        Jukebox.stopBackgroundMusic("gameover");
     }
 }

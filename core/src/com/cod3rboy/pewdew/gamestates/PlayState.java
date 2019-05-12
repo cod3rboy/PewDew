@@ -136,9 +136,8 @@ public class PlayState extends GameState {
         bgTimer = maxDelay;
         playLowPulse = true;
 
-        // Play background music in low volume
-        Jukebox.setBackgroundVolume(0.5f);
-        Jukebox.playBackgroundMusic();
+        // Play background music deepspace
+        Jukebox.playBackgroundMusic("deepspace");
     }
 
     private void createParticles(float x, float y) {
@@ -451,16 +450,18 @@ public class PlayState extends GameState {
         if(isGamePaused()) {
             // Draw Game Paused Text
             pausedFont.setColor(0,1,0,1);
-            gLayout.setText(pausedFont, (!firstTouched) ? "Tap to Play" : "Tap to Resume");
-            pausedFont.draw(sb, gLayout, (PewDew.WIDTH - gLayout.width)/2, PewDew.HEIGHT/2);
+            gLayout.setText(pausedFont, (!firstTouched) ? "Tap to Play" : "Play to Resume");
+            pausedFont.draw(sb, gLayout, (PewDew.WIDTH - gLayout.width)/2, PewDew.HEIGHT * .7f);
 
             if(firstTouched){
                 // Draw Exit Button
                 gLayout.setText(exitFont, "Exit");
-                exitBounds.x = 20 + 20;
-                exitBounds.y = 20 + 20;
                 exitBounds.width = gLayout.width;
                 exitBounds.height = gLayout.height;
+                exitBounds.x = (PewDew.WIDTH - exitBounds.width)/2;
+                exitBounds.y = 20;
+                exitBounds.x += 20;
+                exitBounds.y += 20;
                 exitFont.draw(sb,gLayout,exitBounds.x, exitBounds.y + exitBounds.height);
                 // Update bounds without paddings
                 exitBounds.x -= 20;
@@ -469,6 +470,7 @@ public class PlayState extends GameState {
                 exitBounds.height += 40;
             }
         }
+
         sb.end();
 
         // Draw Exit button bounds
@@ -495,7 +497,7 @@ public class PlayState extends GameState {
 
         player.setLeft(GameKeys.isDown(GameKeys.LEFT));
         player.setRight(GameKeys.isDown(GameKeys.RIGHT));
-        player.setUp(GameKeys.isDown(GameKeys.UP) || (controller.isPressedButtonB()));
+        player.setUp(GameKeys.isDown(GameKeys.UP) || controller.isPressedButtonB());
         if (GameKeys.isPressed(GameKeys.SPACE)) player.shoot();
 
         // Handle Pause / Resume / Exit input
@@ -512,6 +514,7 @@ public class PlayState extends GameState {
         }else if(isGamePaused() && Gdx.input.isTouched()){
             PewDew.cam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
             if(firstTouched && exitBounds.contains(touchPoint.x, touchPoint.y)){
+                Jukebox.play("menuselect");
                 gsm.setState(GameStateManager.MENU); // Go to main menu
                 return;
             }
@@ -533,7 +536,7 @@ public class PlayState extends GameState {
     private void pauseGame(){
         gamePaused = true;
         Jukebox.stopAll();
-        Jukebox.pauseBackgroundMusic();
+        Jukebox.pauseBackgroundMusic("deepspace");
     }
     private void resumeGame(){
         gamePaused = false;
@@ -546,7 +549,7 @@ public class PlayState extends GameState {
                 Jukebox.loop("smallsaucer");
             }
         }
-        Jukebox.playBackgroundMusic();
+        Jukebox.playBackgroundMusic("deepspace");
     }
     private boolean isGamePaused() {
         return gamePaused;
@@ -561,6 +564,6 @@ public class PlayState extends GameState {
         thrusterBtnTexture.dispose();
         font.dispose();
         pausedFont.dispose();
-        Jukebox.stopBackgroundMusic();
+        Jukebox.stopBackgroundMusic("deepspace");
     }
 }

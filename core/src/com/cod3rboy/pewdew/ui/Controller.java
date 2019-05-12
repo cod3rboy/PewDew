@@ -35,9 +35,11 @@ public class Controller implements GameInputProcessor.TouchListener {
     private boolean btnAPressed = false;
     private boolean btnBPressed = false;
 
+    private boolean edgeTouched = false;
+
     public Controller(Vector2 stickCenter, Vector2 btnAPos, Vector2 btnBPos, Texture btnATexture, Texture btnBTexture){
 
-        this.stickOuterCircle = new Circle(stickCenter.x, stickCenter.y, 60);
+        this.stickOuterCircle = new Circle(stickCenter.x, stickCenter.y, 70);
         this.stickInnerCircle = new Circle(stickCenter.x, stickCenter.y, this.stickOuterCircle.radius/4f);
 
         this.btnATexture = btnATexture;
@@ -58,17 +60,17 @@ public class Controller implements GameInputProcessor.TouchListener {
     // and Projection Matrix must already be set
     public void drawController(ShapeRenderer sr, SpriteBatch sb){
 
-        /*// Draw Stick Outer Circle
+        // Draw Stick Outer Circle
         sr.setColor(Color.YELLOW);
         sr.getColor().a = 0.5f;
         sr.begin(ShapeRenderer.ShapeType.Line);
-        sr.circle(stickOuterCircle.x, stickOuterCircle.y, stickOuterCircle.radius);
-        sr.end();*/
+        sr.circle(stickOuterCircle.x, stickOuterCircle.y, stickOuterCircle.radius, 100);
+        sr.end();
 
         // Draw Stick Inner Circle
         sr.begin(ShapeRenderer.ShapeType.Filled);
         sr.setColor(1,.8863f,.07451f, 0.3f);
-        sr.circle(stickInnerCircle.x, stickInnerCircle.y, stickInnerCircle.radius);
+        sr.circle(stickInnerCircle.x, stickInnerCircle.y, stickInnerCircle.radius, 100);
         sr.end();
 
         // Draw Button A and Button B
@@ -93,6 +95,8 @@ public class Controller implements GameInputProcessor.TouchListener {
     public boolean isPressedButtonA(){ return btnAPressed; }
     public boolean isPressedButtonB(){ return btnBPressed; }
 
+    public boolean isEdgeTouching() {  return edgeTouched; }
+
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         if(!handleTouch) return false;
@@ -100,7 +104,6 @@ public class Controller implements GameInputProcessor.TouchListener {
         if(stickOuterCircle.contains(touchPoint.x, touchPoint.y)){
             stickTouchPointer = pointer;
         }
-
         if(!btnAPressed && btnABounds.contains(touchPoint.x, touchPoint.y)){
             btnATouchPointer = pointer;
             btnAPressed = true;
@@ -121,6 +124,13 @@ public class Controller implements GameInputProcessor.TouchListener {
         if(pointer == btnBTouchPointer){
             btnBPressed = false;
         }
+        if(pointer == stickTouchPointer){
+            // Reset inner circle position
+            stickInnerCircle.setX(stickOuterCircle.x);
+            stickInnerCircle.setY(stickOuterCircle.y);
+            edgeTouched = false;
+        }
+
         return true;
     }
 
@@ -142,6 +152,13 @@ public class Controller implements GameInputProcessor.TouchListener {
             stickInnerCircle.setX(touchPoint.x);
             stickInnerCircle.setY(touchPoint.y);
             stickDirection  = direction;
+
+            // Detect edge touching
+            x = stickOuterCircle.x - stickInnerCircle.x;
+            y = stickOuterCircle.y - stickInnerCircle.y;
+            distance = (float) Math.sqrt(x*x + y*y);
+            if(distance >= stickOuterCircle.radius * 0.8) edgeTouched = true;
+            else edgeTouched = false;
         }
         return true;
     }

@@ -8,21 +8,29 @@ import java.util.HashMap;
 
 public class Jukebox {
     private static HashMap<String, Sound> sounds;
-    private static Music bgMusic;
+    private static HashMap<String, Music> musics;
     static{
         sounds = new HashMap<String, Sound>();
+        musics = new HashMap<String, Music>();
     }
     public static void load(String path, String name){
         Sound sound = Gdx.audio.newSound(Gdx.files.internal(path));
         sounds.put(name, sound);
     }
 
+    public static void play(String name, float volume){
+        sounds.get(name).play(volume);
+    }
     public static void play(String name){
-        sounds.get(name).play();
+        play(name, 1f);
+    }
+    public static void loop(String name, float volume){
+        sounds.get(name).loop(volume);
     }
     public static void loop(String name){
-        sounds.get(name).loop();
+        loop(name, 1f);
     }
+
     public static void stop(String name){
         sounds.get(name).stop();
     }
@@ -33,28 +41,42 @@ public class Jukebox {
         }
     }
 
-    public static void loadBackgroundMusic(String path){
-        bgMusic = Gdx.audio.newMusic(Gdx.files.internal(path));
-        bgMusic.setLooping(true);
+    public static void loadBackgroundMusic(String path, String name){
+        Music music = Gdx.audio.newMusic(Gdx.files.internal(path));
+        music.setLooping(true);
+        musics.put(name, music);
     }
-    public static void playBackgroundMusic(){
-        if(bgMusic != null) bgMusic.play();
+    public static void playBackgroundMusic(String name, float volume){
+        Music m = musics.get(name);
+        m.setVolume(volume);
+        m.play();
     }
-    public static void pauseBackgroundMusic(){
-        if(bgMusic != null) bgMusic.pause();
+    public static void playBackgroundMusic(String name){
+        playBackgroundMusic(name, 1f);
     }
-    public static void stopBackgroundMusic(){
-        if(bgMusic != null && bgMusic.isPlaying()) bgMusic.stop();
+    public static void pauseBackgroundMusic(String name){
+        musics.get(name).pause();
     }
-    public static void setBackgroundVolume(float vol){
-        if(bgMusic != null) bgMusic.setVolume(vol);
+    public static void stopBackgroundMusic(String name){
+        Music music = musics.get(name);
+        if(music.isPlaying()) music.stop();
     }
-
+    public static boolean isPlayingBackgroundMusic(String name){
+        return musics.get(name).isPlaying();
+    }
+    public static void stopAllBackgroundMusic(){
+        for(Music m : musics.values()){
+            if(m.isPlaying()) m.stop();
+        }
+    }
     public static void dispose(){
         for(Sound s: sounds.values()){
             s.dispose();
         }
+        for(Music m: musics.values()){
+            m.dispose();
+        }
         sounds.clear();
-        bgMusic.dispose();
+        musics.clear();
     }
 }

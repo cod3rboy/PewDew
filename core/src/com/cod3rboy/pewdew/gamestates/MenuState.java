@@ -9,9 +9,11 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.cod3rboy.pewdew.PewDew;
 import com.cod3rboy.pewdew.entities.Asteroid;
+import com.cod3rboy.pewdew.entities.Star;
 import com.cod3rboy.pewdew.managers.GameKeys;
 import com.cod3rboy.pewdew.managers.GameStateManager;
 import com.cod3rboy.pewdew.managers.Jukebox;
@@ -41,6 +43,20 @@ public class MenuState extends GameState {
 
     private float flashTimer = 0;
     private float flashTime = 0.05f;
+
+    private ArrayList<Star> starField;
+    private float starSpawnTimer;
+    private final float starSpawnTime = 0.4f;
+    private final int MAX_STARS = 120; // Maximum number of stars allowed on screen at a time
+    private final int STARS_PER_TIMEOUT = 20; // Number of stars to spawn at one shot
+    private Vector2 starFieldCenter;
+
+    // Music Button
+    private BitmapFont musicFont;
+    private GlyphLayout musicFontLayout;
+    private Rectangle musicBtnBounds;
+    private boolean isMusicOn;
+
 
     public MenuState(GameStateManager gsm) {
         super(gsm);
@@ -77,7 +93,7 @@ public class MenuState extends GameState {
 
         asteroids = new ArrayList<Asteroid>();
 
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 8; i++) {
             asteroids.add(new Asteroid(
                     MathUtils.random(PewDew.WIDTH),
                     MathUtils.random(PewDew.HEIGHT),
@@ -85,9 +101,46 @@ public class MenuState extends GameState {
             ));
         }
 
-        // Start background music
-        Jukebox.setBackgroundVolume(1);
-        Jukebox.playBackgroundMusic();
+
+        starField = new ArrayList<Star>();
+        starFieldCenter = new Vector2(PewDew.WIDTH / 2f, PewDew.HEIGHT / 2f);
+        starSpawnTimer = 0;
+        spawnStars();
+
+        // Initialize Music Button Font and Bounds
+        param.size = 25;
+        musicFont = gen.generateFont(param);
+        musicFontLayout = new GlyphLayout();
+        musicBtnBounds = new Rectangle();
+        isMusicOn = GameStateManager.getMusicSetting();
+
+        if(GameStateManager.getMusicSetting()) {
+            // Start background music
+            Jukebox.playBackgroundMusic("chronos");
+        }
+    }
+
+    private void spawnStars() {
+        if (starField.size() >= MAX_STARS) return;
+        float minRadian, maxRadian;
+        for (int j = 0; j < 4; j++) {
+            minRadian = MathUtils.PI2 * j / 4;
+            maxRadian = MathUtils.PI2 * (j + 1) / 4f;
+            for (int i = 0; i < STARS_PER_TIMEOUT / 4; i++) {
+                Star s = new Star(starFieldCenter.x, starFieldCenter.y, MathUtils.random(minRadian, maxRadian));
+                // Set random Color
+                s.setColor(
+                        MathUtils.random(1f),
+                        MathUtils.random(1f),
+                        MathUtils.random(1f),
+                        1
+                );
+
+                // Set random speed
+                s.setSpeed(MathUtils.random(100, 200));
+                starField.add(s);
+            }
+        }
     }
 
     @Override
@@ -103,12 +156,35 @@ public class MenuState extends GameState {
         for (int i = 0; i < asteroids.size(); i++) {
             asteroids.get(i).update(dt);
         }
+
+        // Add new stars to the star field
+        starSpawnTimer += dt;
+        if (starSpawnTimer >= starSpawnTime) {
+            // Time out
+            starSpawnTimer = 0;
+            spawnStars();
+        }
+
+        // Update stars in star field
+        for (int i = 0; i < starField.size(); i++) {
+            Star s = starField.get(i);
+            s.update(dt);
+            if (s.shouldRemove()) {
+                starField.remove(i);
+                i--;
+            }
+        }
     }
 
     @Override
     public void draw() {
         sb.setProjectionMatrix(PewDew.cam.combined);
         sr.setProjectionMatrix(PewDew.cam.combined);
+
+        // draw starfield
+        for (int i = 0; i < starField.size(); i++) {
+            starField.get(i).draw(sr);
+        }
 
         // draw asteroids
         for (int i = 0; i < asteroids.size(); i++) {
@@ -124,7 +200,7 @@ public class MenuState extends GameState {
                 sb,
                 gLayout,
                 (PewDew.WIDTH - width) / 2,
-                PewDew.HEIGHT - PewDew.HEIGHT/6f
+                PewDew.HEIGHT - PewDew.HEIGHT / 6f
         );
 
         // Draw menu
@@ -140,6 +216,25 @@ public class MenuState extends GameState {
             // Draw
             font.draw(sb, gLayout, bounds.x, bounds.y + bounds.height);
         }
+
+
+        if(isMusicOn) {
+            musicFont.setColor(0,1,0,1);
+            musicFontLayout.setText(musicFont, "MUSIC ON");
+        }else{
+            musicFont.setColor(1,0,0,1);
+            musicFontLayout.setText(musicFont, "MUSIC OFF");
+        }
+        musicBtnBounds.setWidth(musicFontLayout.width);
+        musicBtnBounds.setHeight(musicFontLayout.height);
+        musicBtnBounds.x = PewDew.WIDTH - musicBtnBounds.width - 10;
+        musicBtnBounds.y = PewDew.HEIGHT - musicBtnBounds.height - 15;
+        musicFont.draw(
+                sb,
+                musicFontLayout,
+                musicBtnBounds.x,
+                musicBtnBounds.y + musicBtnBounds.height
+        );
         sb.end();
     }
 
@@ -157,43 +252,69 @@ public class MenuState extends GameState {
         }
         if (GameKeys.isPressed(GameKeys.ENTER)) select();
 
-        if(Gdx.input.isTouched()){
+        if (Gdx.input.justTouched()) {
             float x = Gdx.input.getX();
             float y = Gdx.input.getY();
 
             PewDew.cam.unproject(touchPoint.set(x, y, 0));
-
-            for(int i=0; i<menuItems.length; i++){
+            for (int i = 0; i < menuItems.length; i++) {
                 Rectangle bounds = menuBounds.get(menuItems[i]);
                 System.out.println(String.format("Touched at %.2f , %.2f", touchPoint.x, touchPoint.y) + " and Bounds : " + menuItems[i] + " - " + bounds.toString());
-                if(bounds.contains(touchPoint.x, touchPoint.y)){
+                if (bounds.contains(touchPoint.x, touchPoint.y)) {
                     currentItem = i;
-                    Jukebox.play("menuselect");
                     select();
-                    break;
+                    return;
                 }
             }
+
+            // Music Button Touch
+            if(musicBtnBounds.contains(touchPoint.x, touchPoint.y)){
+                Jukebox.play("menuselect");
+                isMusicOn = !isMusicOn;
+                GameStateManager.setMusicSetting(isMusicOn);
+                if(isMusicOn){
+                    // Start background music
+                    Jukebox.playBackgroundMusic("chronos");
+                }else{
+                    // Stop background music
+                    Jukebox.stopBackgroundMusic("chronos");
+                }
+                return;
+            }
+        }
+        if (Gdx.input.isTouched()) {
+            float x = Gdx.input.getX();
+            float y = Gdx.input.getY();
+
+            PewDew.cam.unproject(touchPoint.set(x, y, 0));
+            // No Option is selected by the touch so we change star field center to the touch point
+            starFieldCenter.set(touchPoint.x, touchPoint.y);
+        } else {
+            // Reset starfield center to screen center when screen is not touched
+            starFieldCenter.set(PewDew.WIDTH / 2f, PewDew.HEIGHT / 2f);
         }
     }
 
     private void select() {
         // play
         if (currentItem == 0) {
+            Jukebox.play("menuselect");
+            Jukebox.stopAllBackgroundMusic();
             gsm.setState(GameStateManager.PLAY);
         } else if (currentItem == 1) { // High Score state
+            Jukebox.play("menuselect");
             gsm.setState(GameStateManager.HIGHSCORE);
         } else if (currentItem == 2) {
-            dispose();
             Gdx.app.exit();
         }
     }
 
     @Override
     public void dispose() {
-        Jukebox.stopBackgroundMusic();
         sb.dispose();
         sr.dispose();
         titleFont.dispose();
         font.dispose();
+        musicFont.dispose();
     }
 }

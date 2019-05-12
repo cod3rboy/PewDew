@@ -4,7 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.cod3rboy.pewdew.managers.GameInputProcessor;
 import com.cod3rboy.pewdew.managers.GameKeys;
 import com.cod3rboy.pewdew.managers.GameStateManager;
@@ -14,7 +14,7 @@ public class PewDew extends ApplicationAdapter {
 	public static int WIDTH;
 	public static int HEIGHT;
 	public static OrthographicCamera cam;
-	private static FitViewport viewport;
+	private static ExtendViewport viewport;
 	private GameStateManager gsm;
 
 	@Override
@@ -23,7 +23,7 @@ public class PewDew extends ApplicationAdapter {
 		WIDTH = 800;
 		HEIGHT = 450;
 		cam = new OrthographicCamera(WIDTH, HEIGHT);
-		viewport = new FitViewport(WIDTH, HEIGHT,cam);
+		viewport = new ExtendViewport(WIDTH, HEIGHT,cam);
 		viewport.apply();
 		cam.translate(WIDTH/2, HEIGHT/2);
 		cam.update();
@@ -43,7 +43,9 @@ public class PewDew extends ApplicationAdapter {
 		Jukebox.load("sounds/menuselect.ogg", "menuselect");
 
 		// load background music
-		Jukebox.loadBackgroundMusic("sounds/deepspace.mp3");
+		Jukebox.loadBackgroundMusic("sounds/deepspace.ogg", "deepspace");
+		Jukebox.loadBackgroundMusic("sounds/chronos.ogg", "chronos");
+		Jukebox.loadBackgroundMusic("sounds/gameover.ogg", "gameover");
 
 		gsm = new GameStateManager();
 	}

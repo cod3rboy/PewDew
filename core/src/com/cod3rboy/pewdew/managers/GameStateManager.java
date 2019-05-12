@@ -1,5 +1,7 @@
 package com.cod3rboy.pewdew.managers;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.cod3rboy.pewdew.gamestates.GameOverState;
 import com.cod3rboy.pewdew.gamestates.GameState;
 import com.cod3rboy.pewdew.gamestates.HighScoreState;
@@ -14,6 +16,14 @@ public class GameStateManager {
     public static final int PLAY = 53253;
     public static final int HIGHSCORE = 353;
     public static final int GAMEOVER = 25352;
+
+    private static boolean musicSetting; // True = Music ON and False = Music OFF
+    private static final String PREFERENCES = "settings";
+    private static final String KEY_MUSIC = "music_status";
+    static {
+        loadMusicSetting();
+    }
+
     public GameStateManager(){
         setState(MENU);
     }
@@ -41,5 +51,20 @@ public class GameStateManager {
     }
     public void draw() {
         gameState.draw();
+    }
+
+    public static boolean getMusicSetting() { return musicSetting; }
+    public static void setMusicSetting(boolean setting){ musicSetting = setting; saveMusicSetting(); }
+
+
+    private static void saveMusicSetting(){
+        // Save Music Setting to Preferences
+        Preferences prefs = Gdx.app.getPreferences(PREFERENCES);
+        prefs.putBoolean(KEY_MUSIC, musicSetting);
+        prefs.flush();
+    }
+    private static void loadMusicSetting(){
+        // Load Music Setting from Preferences
+        musicSetting = Gdx.app.getPreferences(PREFERENCES).getBoolean(KEY_MUSIC, true);
     }
 }
