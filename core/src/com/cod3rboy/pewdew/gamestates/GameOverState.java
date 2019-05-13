@@ -49,9 +49,9 @@ public class GameOverState extends GameState {
 
     private ArrayList<Star> starField;
     private float starSpawnTimer;
-    private final float starSpawnTime = 0.25f;
-    private final int MAX_STARS = 250; // Maximum number of stars allowed on screen at a time
-    private final int STARS_PER_TIMEOUT = 36; // Number of stars to spawn at one shot
+    private final float starSpawnTime = 0.20f;
+    private final int MAX_STARS = 300; // Maximum number of stars allowed on screen at a time
+    private final int STARS_PER_TIMEOUT = 50; // Number of stars to spawn at one shot
     private final float MIN_DIST_CENTER = 20;
 
     @Override
@@ -98,6 +98,8 @@ public class GameOverState extends GameState {
         if(GameStateManager.getMusicSetting()) {
             // Play background gameover music
             Jukebox.playBackgroundMusic("gameover");
+        }else{
+            Jukebox.playBackgroundMusic("deepspace");
         }
 
     }
@@ -126,8 +128,8 @@ public class GameOverState extends GameState {
             // Set random speed
             s.setSpeed(MathUtils.random(100,200));
             s.setDecrementRadius(true);
-            s.setRadius(1.5f);
-            s.setDeltaRadius(0.3f);
+            s.setRadius(1f);
+            s.setDeltaRadius(0.5f);
             starField.add(s);
         }
 
@@ -378,6 +380,8 @@ public class GameOverState extends GameState {
                 if(keyBounds[i].contains(touchPoint.x, touchPoint.y)){
                     newName[currentChar] = keys[i].charAt(0);
                     Jukebox.play("keypress");
+                    currentChar++;
+                    if(currentChar >= newName.length) currentChar = 0;
                     break;
                 }
             }
@@ -406,6 +410,6 @@ public class GameOverState extends GameState {
         sr.dispose();
         gameOverFont.dispose();
         font.dispose();
-        Jukebox.stopBackgroundMusic("gameover");
+        Jukebox.stopAllBackgroundMusic();
     }
 }

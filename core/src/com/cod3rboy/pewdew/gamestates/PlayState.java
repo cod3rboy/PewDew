@@ -2,7 +2,6 @@ package com.cod3rboy.pewdew.gamestates;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -18,11 +17,10 @@ import com.cod3rboy.pewdew.entities.Bullet;
 import com.cod3rboy.pewdew.entities.FlyingSaucer;
 import com.cod3rboy.pewdew.entities.Particle;
 import com.cod3rboy.pewdew.entities.Player;
-import com.cod3rboy.pewdew.managers.GameKeys;
 import com.cod3rboy.pewdew.managers.GameStateManager;
 import com.cod3rboy.pewdew.managers.Jukebox;
 import com.cod3rboy.pewdew.managers.Save;
-import com.cod3rboy.pewdew.ui.Controller;
+import com.cod3rboy.pewdew.ui.DualStickController;
 
 import java.util.ArrayList;
 
@@ -36,6 +34,10 @@ public class PlayState extends GameState {
     private BitmapFont exitFont;
     private Rectangle exitBounds;
     private GlyphLayout gLayout;
+
+    // Cannon button bounds
+    private Rectangle cannonBtnBounds;
+    private BitmapFont cannonBtnFont;
 
     private Player player;
     private Player hudPlayer;
@@ -66,11 +68,13 @@ public class PlayState extends GameState {
 
     private Vector3 touchPoint;
 
+    private float slomoFactor;
+
     // Game Controller UI
-    private Controller controller;
-    private Texture shootBtnTexture;
-    private Texture thrusterBtnTexture;
-    private boolean btnAPressed = false;
+    private DualStickController controller;
+
+    private float shootTimer = 0;
+    private final float shootTime = 0.15f;
 
     public PlayState(GameStateManager gsm) {
         super(gsm);
@@ -81,16 +85,13 @@ public class PlayState extends GameState {
         sr = new ShapeRenderer();
         sb = new SpriteBatch();
 
-        shootBtnTexture = new Texture(Gdx.files.internal("textures/shoot.png"));
-        thrusterBtnTexture = new Texture(Gdx.files.internal("textures/thruster.png"));
-
-        controller = new Controller(
+        controller = new DualStickController(
                 new Vector2(120, 120),
-                new Vector2(PewDew.WIDTH-100, 150),
-                new Vector2(PewDew.WIDTH-170, 50),
-                shootBtnTexture,
-                thrusterBtnTexture
+                new Vector2(PewDew.WIDTH-120, 120)
         );
+
+        controller.setHandleTouch(true);
+        controller.setRightStickFixed(GameStateManager.getCannonFixed());
 
         gamePaused = false;
         firstTouched = false;
@@ -107,10 +108,15 @@ public class PlayState extends GameState {
         param.size = 25;
         param.color = Color.RED;
         exitFont = gen.generateFont(param);
+        param.size = 25;
+        param.color = Color.YELLOW;
+        cannonBtnFont = gen.generateFont(param);
 
         gLayout = new GlyphLayout();
 
         exitBounds = new Rectangle();
+
+        cannonBtnBounds = new Rectangle();
 
         bullets = new ArrayList<Bullet>();
 
@@ -136,8 +142,13 @@ public class PlayState extends GameState {
         bgTimer = maxDelay;
         playLowPulse = true;
 
-        // Play background music deepspace
-        Jukebox.playBackgroundMusic("deepspace");
+        slomoFactor = 1;
+
+
+        if(!GameStateManager.getMusicSetting()) {
+            // Play background music deepspace
+            Jukebox.playBackgroundMusic("deepspace");
+        }
     }
 
     private void createParticles(float x, float y) {
@@ -182,17 +193,16 @@ public class PlayState extends GameState {
                 dy = y - player.getY();
                 dist = (float) Math.sqrt(dx * dx + dy * dy);
             }
-
             asteroids.add(new Asteroid(x, y, Asteroid.LARGE));
         }
     }
 
     @Override
     public void update(float dt) {
+        dt = dt * slomoFactor;
+
         // get user input
         handleInput();
-
-        if(isGamePaused()) return;
 
         // next level
         if (asteroids.size() == 0) {
@@ -205,6 +215,7 @@ public class PlayState extends GameState {
         if (player.isDead()) {
             if(player.getLives() == 0){
                 Jukebox.stopAll();
+                Jukebox.stopAllBackgroundMusic();
                 Save.gd.setTentativeScore(player.getScore());
                 gsm.setState(GameStateManager.GAMEOVER);
                 return;
@@ -234,6 +245,13 @@ public class PlayState extends GameState {
                 int type = (MathUtils.random() < 0.5) ? FlyingSaucer.SMALL : FlyingSaucer.LARGE;
                 int direction = MathUtils.random() < 0.5 ? FlyingSaucer.RIGHT : FlyingSaucer.LEFT;
                 flyingSaucer = new FlyingSaucer(type, direction, player, enemyBullets);
+                if(!isGamePaused()) {
+                    if (flyingSaucer.getType() == FlyingSaucer.LARGE) {
+                        Jukebox.loop("largesaucer", 0.7f);
+                    } else if (flyingSaucer.getType() == FlyingSaucer.SMALL) {
+                        Jukebox.loop("smallsaucer", 0.7f);
+                    }
+                }
             }
         }else{
             // if there is flying saucer already then we try to remove it
@@ -279,7 +297,7 @@ public class PlayState extends GameState {
         // play bg music
         bgTimer += dt;
 
-        if(!player.isHit() && bgTimer >= currentDelay){
+        if(!player.isHit() && bgTimer >= currentDelay && !GameStateManager.getMusicSetting() && !isGamePaused()){
             if(playLowPulse) Jukebox.play("pulselow");
             else Jukebox.play("pulsehigh");
             playLowPulse = !playLowPulse;
@@ -441,7 +459,7 @@ public class PlayState extends GameState {
         }
 
         // draw score
-        sb.setColor(1, 1, 1, 1);
+        font.setColor(1, 1, 1, 1);
         sb.begin();
         font.draw(sb, String.format("Score : %d",player.getScore()), 40, 420);
         font.draw(sb, "Lives : ", 40, 390);
@@ -468,6 +486,24 @@ public class PlayState extends GameState {
                 exitBounds.y -= 20;
                 exitBounds.width += 40;
                 exitBounds.height += 40;
+            }else{
+                // Draw Cannon Button
+                gLayout.setText(cannonBtnFont,
+                        (
+                                controller.isRightStickFixed() ?
+                                String.format("%-16s","Cannon : TIP") : "Cannon : R-Stick"
+                        )
+                );
+                cannonBtnBounds.width = gLayout.width;
+                cannonBtnBounds.height = gLayout.height;
+                cannonBtnBounds.x = PewDew.WIDTH - cannonBtnBounds.width - 20;
+                cannonBtnBounds.y = PewDew.HEIGHT - cannonBtnBounds.height - 20;
+                cannonBtnFont.draw(sb, gLayout, cannonBtnBounds.x , cannonBtnBounds.y + cannonBtnBounds.height);
+                // Set Touch padding
+                cannonBtnBounds.x -= 10;
+                cannonBtnBounds.y -= 10;
+                cannonBtnBounds.width += 20;
+                cannonBtnBounds.height += 20;
             }
         }
 
@@ -488,58 +524,65 @@ public class PlayState extends GameState {
         }
 
         // draw controller
-        controller.drawController(sr, sb);
+        controller.drawController(sr);
     }
 
     @Override
     public void handleInput() {
-        if(player.isHit()) return;
-
-        player.setLeft(GameKeys.isDown(GameKeys.LEFT));
-        player.setRight(GameKeys.isDown(GameKeys.RIGHT));
-        player.setUp(GameKeys.isDown(GameKeys.UP) || controller.isPressedButtonB());
-        if (GameKeys.isPressed(GameKeys.SPACE)) player.shoot();
-
-        // Handle Pause / Resume / Exit input
-        if(!isGamePaused() && GameKeys.isPressed(GameKeys.ESCAPE)) {
-            pauseGame();
-        }else if(isGamePaused() && GameKeys.isPressed(GameKeys.ENTER)){
-           resumeGame();
-        }else if(isGamePaused() && GameKeys.isPressed(GameKeys.ESCAPE)){
-            gsm.setState(GameStateManager.MENU); // Go to main menu
-        }
+        if(player.isHit() && !isGamePaused()) return;
 
         if(!isGamePaused() && !Gdx.input.isTouched()){
             pauseGame();
+            controller.startSticksAnimation();
         }else if(isGamePaused() && Gdx.input.isTouched()){
             PewDew.cam.unproject(touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0));
-            if(firstTouched && exitBounds.contains(touchPoint.x, touchPoint.y)){
-                Jukebox.play("menuselect");
-                gsm.setState(GameStateManager.MENU); // Go to main menu
+            if(firstTouched){
+                if(exitBounds.contains(touchPoint.x, touchPoint.y)){
+                    Jukebox.play("menuselect");
+                    gsm.setState(GameStateManager.MENU); // Go to main menu
+                    return;
+                }
+            }
+            if(!firstTouched && cannonBtnBounds.contains(touchPoint.x, touchPoint.y)){
+                if(Gdx.input.justTouched()) {
+                    Jukebox.play("menuselect");
+                    controller.setRightStickFixed(!controller.isRightStickFixed());
+                    GameStateManager.saveCannonFixed(controller.isRightStickFixed());
+                }
                 return;
             }
-            if(!firstTouched) controller.setHandleTouch(true);
             firstTouched = true; // touched for first time
             resumeGame();
+            controller.stopSticksAnimation();
         }
-        player.setRotation(controller.getStickDirection());
-        if(controller.isPressedButtonA()){ // Shoot Button Pressed
-            if(!btnAPressed) {
-                player.shoot();
-                btnAPressed = true;
-            }
+
+        player.setRotation(controller.getLeftStickDirection());
+        if(controller.isLeftStickTouching()){
+            float percent = controller.getLeftStickDistance()/controller.getLeftStickMaxDistance();
+            if(percent > 0.2f) player.setSpeed( percent * player.getMaxSpeed());
+            else player.setSpeed(0);
         }else{
-            btnAPressed = false;
+            player.setSpeed(0);
+        }
+        if(controller.isRightStickTouching()) { // Shoot Button Pressed
+            shootTimer += Gdx.graphics.getDeltaTime();
+            if(shootTimer > shootTime) {
+                shootTimer = 0;
+                if(!controller.isRightStickFixed()) player.setBulletRotation(controller.getRightStickDirection());
+                else player.setBulletRotation(player.getRadians());
+                player.shoot();
+            }
         }
     }
 
     private void pauseGame(){
         gamePaused = true;
+        slomoFactor = 0.05f;
         Jukebox.stopAll();
-        Jukebox.pauseBackgroundMusic("deepspace");
     }
     private void resumeGame(){
         gamePaused = false;
+        slomoFactor = 1;
         // Restart previous stopped flying saucer music loop
         if(flyingSaucer != null){
             int type = flyingSaucer.getType();
@@ -549,7 +592,6 @@ public class PlayState extends GameState {
                 Jukebox.loop("smallsaucer");
             }
         }
-        Jukebox.playBackgroundMusic("deepspace");
     }
     private boolean isGamePaused() {
         return gamePaused;
@@ -560,10 +602,8 @@ public class PlayState extends GameState {
         sb.dispose();
         sr.dispose();
         controller.dispose();
-        shootBtnTexture.dispose();
-        thrusterBtnTexture.dispose();
         font.dispose();
         pausedFont.dispose();
-        Jukebox.stopBackgroundMusic("deepspace");
+        cannonBtnFont.dispose();
     }
 }

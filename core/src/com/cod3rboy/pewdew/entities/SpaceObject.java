@@ -48,6 +48,12 @@ public class SpaceObject {
        this.y = y;
     }
 
+    public void setSpeed(float speed){
+        this.speed = speed;
+    }
+
+    public float getRadians() { return radians; }
+
     public boolean intersects(SpaceObject other){
         float[] sx = other.getShapex();
         float[] sy = other.getShapey();

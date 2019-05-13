@@ -10,7 +10,7 @@ public class Bullet extends SpaceObject {
     private boolean remove;
 
     private float flashTimer = 0f;
-    private float flashTime = 0.1f;
+    private float flashTime = 0.05f;
 
     private Color bulletColor;
 
@@ -28,7 +28,7 @@ public class Bullet extends SpaceObject {
         width = height = 3;
 
         lifeTimer = 0;
-        lifeTime = 1.2f;
+        lifeTime = .8f;
 
         bulletColor = new Color(1,1,1,1);
         isFlashingBullet = isFlashing;
@@ -47,14 +47,18 @@ public class Bullet extends SpaceObject {
         }
 
         if(isFlashingBullet) {
+            flashTimer += dt;
             if (flashTimer > flashTime) {
                 flashTimer = 0;
                 bulletColor.set(MathUtils.random(1f), MathUtils.random(1f), MathUtils.random(1f), 1);
-            } else {
-                flashTimer += dt;
             }
         }
     }
+
+    public void setLifeTime(float time){
+        this.lifeTime = time;
+    }
+
     public void draw(ShapeRenderer sr){
         sr.setColor(bulletColor);
         sr.begin(ShapeRenderer.ShapeType.Filled);

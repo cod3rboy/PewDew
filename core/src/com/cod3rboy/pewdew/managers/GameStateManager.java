@@ -20,6 +20,7 @@ public class GameStateManager {
     private static boolean musicSetting; // True = Music ON and False = Music OFF
     private static final String PREFERENCES = "settings";
     private static final String KEY_MUSIC = "music_status";
+    private static final String KEY_CANNON = "cannon_fixed";
     static {
         loadMusicSetting();
     }
@@ -66,5 +67,16 @@ public class GameStateManager {
     private static void loadMusicSetting(){
         // Load Music Setting from Preferences
         musicSetting = Gdx.app.getPreferences(PREFERENCES).getBoolean(KEY_MUSIC, true);
+    }
+
+    public static void saveCannonFixed(boolean bool){
+        // Save the cannon mode of user whether it is fixed at tip or set at controller Right Stick
+        Preferences prefs = Gdx.app.getPreferences(PREFERENCES);
+        prefs.putBoolean(KEY_CANNON, bool);
+        prefs.flush();
+    }
+
+    public static boolean getCannonFixed(){
+        return Gdx.app.getPreferences(PREFERENCES).getBoolean(KEY_CANNON, false);
     }
 }

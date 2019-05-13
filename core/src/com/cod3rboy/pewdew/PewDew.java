@@ -39,7 +39,6 @@ public class PewDew extends ApplicationAdapter {
 		Jukebox.load("sounds/saucershoot.ogg", "saucershoot");
 		Jukebox.load("sounds/shoot.ogg", "shoot");
 		Jukebox.load("sounds/smallsaucer.ogg", "smallsaucer");
-		Jukebox.load("sounds/thruster.ogg", "thruster");
 		Jukebox.load("sounds/menuselect.ogg", "menuselect");
 
 		// load background music

@@ -10,22 +10,18 @@ import java.util.ArrayList;
 
 public class Player extends SpaceObject {
 
-    private final int MAX_BULLETS = 10;
+    private final int MAX_BULLETS = 80;
     private ArrayList<Bullet> bullets;
 
     private float[] flamex;
     private float[] flamey;
 
-    private boolean left;
-    private boolean right;
-    private boolean up;
+    private boolean thrustersOn;
 
     // Unit pixels per second
     private float maxSpeed;
-    private float acceleration;
-    private float deceleration; // friction
+    private final float MAX_SPEED_PERCENT = 0.9f;
 
-    private float acceleratingTimer;
 
     private boolean hit;
     private boolean dead;
@@ -39,22 +35,27 @@ public class Player extends SpaceObject {
     private int extraLives;
     private long requiredScore;
 
+
+    private float bulletRadians;
+
     public Player(ArrayList<Bullet> bullets) {
         this.bullets = bullets;
 
         x = PewDew.WIDTH / 2f;
         y = PewDew.HEIGHT / 2f;
 
-        maxSpeed = 300;
-        acceleration = 200;
-        deceleration = 10;
+        //maxSpeed = 300;
+        maxSpeed = 180;
 
         shapex = new float[4];
         shapey = new float[4];
         flamex = new float[3];
         flamey = new float[3];
+        thrustersOn = false;
 
         radians = MathUtils.PI / 2;
+        bulletRadians = radians;
+
         rotationSpeed = 3;
 
         hit = false;
@@ -63,7 +64,7 @@ public class Player extends SpaceObject {
 
         score = 0;
         extraLives = 3;
-        requiredScore = 6000;
+        requiredScore = 10000;
 
     }
 
@@ -82,72 +83,82 @@ public class Player extends SpaceObject {
     }
 
     private void setFlame() {
-        flamex[0] = x + MathUtils.cos(radians - 5 * MathUtils.PI / 6) * 5;
-        flamey[0] = y + MathUtils.sin(radians - 5 * MathUtils.PI / 6) * 5;
+        flamex[0] = x + MathUtils.cos(radians - 5 * MathUtils.PI / 6) * 6;
+        flamey[0] = y + MathUtils.sin(radians - 5 * MathUtils.PI / 6) * 6;
 
-        flamex[1] = x + MathUtils.cos(radians - MathUtils.PI) * (10 + acceleratingTimer * 50);
-        flamey[1] = y + MathUtils.sin(radians - MathUtils.PI) * (10 + acceleratingTimer * 50);
+        flamex[1] = x + MathUtils.cos(radians - MathUtils.PI) * 20;
+        flamey[1] = y + MathUtils.sin(radians - MathUtils.PI) * 20;
 
-        flamex[2] = x + MathUtils.cos(radians + 5 * MathUtils.PI / 6) * 5;
-        flamey[2] = y + MathUtils.sin(radians + 5 * MathUtils.PI / 6) * 5;
+        flamex[2] = x + MathUtils.cos(radians + 5 * MathUtils.PI / 6) * 6;
+        flamey[2] = y + MathUtils.sin(radians + 5 * MathUtils.PI / 6) * 6;
     }
 
-    public void setLeft(boolean b) {
-        left = b;
+    @Override
+    public void setSpeed(float speed) {
+        super.setSpeed(speed);
+        if (this.speed > maxSpeed) this.speed = maxSpeed;
     }
 
-    public void setRight(boolean b) {
-        right = b;
+    public float getMaxSpeed() {
+        return maxSpeed;
     }
 
-    public void setUp(boolean b) {
-        if(b && !up && !hit){
-            Jukebox.loop("thruster");
-        }else if(!b){
-            Jukebox.stop("thruster");
-        }
-        up = b;
-    }
-
-    public void setRotation(float radians){
+    public void setRotation(float radians) {
         this.radians = radians;
     }
 
-    public void setPosition(float x, float y){
+    public void setBulletRotation(float radians) {
+        this.bulletRadians = radians;
+    }
+
+    public void setPosition(float x, float y) {
         super.setPosition(x, y);
         setShape();
     }
 
-    public boolean isHit() { return hit; }
-    public boolean isDead() { return dead; }
+    public boolean isHit() {
+        return hit;
+    }
 
-    public void reset(){
+    public boolean isDead() {
+        return dead;
+    }
+
+    public void reset() {
         x = PewDew.WIDTH / 2;
         y = PewDew.HEIGHT / 2;
         setShape();
         hit = dead = false;
     }
 
-    public long getScore(){ return score; }
-    public int getLives() { return extraLives; }
+    public long getScore() {
+        return score;
+    }
 
-    public void loseLife() { extraLives-- ; }
-    public void incrementScore(long l) { score += l; }
+    public int getLives() {
+        return extraLives;
+    }
+
+    public void loseLife() {
+        extraLives--;
+    }
+
+    public void incrementScore(long l) {
+        score += l;
+    }
 
     public void shoot() {
         if (bullets.size() == MAX_BULLETS) return;
-        bullets.add(new Bullet(x, y, radians, true));
-        Jukebox.play("shoot");
+        bullets.add(new Bullet(x,y, bulletRadians, true));
+        //bullets.add(new Bullet(x,y, radians, true));
+        Jukebox.play("shoot", 0.8f);
     }
 
     public void hit() {
-        if(hit) return;
+        if (hit) return;
         hit = true;
         dx = 0;
         dy = 0;
-        left = right = up = false;
-
-        Jukebox.stop("thruster");
 
         hitLines = new Line2D[4];
 
@@ -198,20 +209,20 @@ public class Player extends SpaceObject {
         }
 
         // Check extra lives
-        if(score >= requiredScore) {
+        if (score >= requiredScore) {
             extraLives++;
             requiredScore += 10000;
             Jukebox.play("extralife");
         }
 
-        // Turning
+        /*// Turning
         if (left) {
             radians += rotationSpeed * dt;
         } else if (right) {
             radians -= rotationSpeed * dt;
-        }
+        }*/
 
-        // Acceleration
+        /*// Acceleration
         if (up) {
             dx += MathUtils.cos(radians) * acceleration * dt;
             dy += MathUtils.sin(radians) * acceleration * dt;
@@ -230,7 +241,10 @@ public class Player extends SpaceObject {
         if (vec > maxSpeed) {
             dx = (dx / vec) * maxSpeed;
             dy = (dy / vec) * maxSpeed;
-        }
+        }*/
+
+        dx = speed * MathUtils.cos(radians);
+        dy = speed * MathUtils.sin(radians);
 
         // set position
         x += dx * dt;
@@ -240,7 +254,13 @@ public class Player extends SpaceObject {
         setShape();
 
         // set flame
-        if (up) setFlame();
+        float speedPercent = speed / maxSpeed;
+        if (speedPercent > MAX_SPEED_PERCENT && !hit) {
+            setFlame();
+            thrustersOn = true;
+        } else {
+            thrustersOn = false;
+        }
 
         // screen wrap
         wrap();
@@ -270,11 +290,11 @@ public class Player extends SpaceObject {
         }
 
         // draw flames
-        if (up) {
-            boolean colorRed = MathUtils.random() < 0.5 ;
+        if (thrustersOn) {
+            boolean colorRed = MathUtils.random() < 0.5;
             // Set thruster color
-            if(colorRed) sr.setColor(1,.21569f, .07451f, 1); // Red flame color
-            else sr.setColor(1,.894f, .1412f, 1); // Yellow flame color
+            if (colorRed) sr.setColor(1, .21569f, .07451f, 1); // Red flame color
+            else sr.setColor(1, .894f, .1412f, 1); // Yellow flame color
             for (int i = 0, j = flamex.length - 1; i < flamex.length; j = i++) {
                 sr.line(flamex[i], flamey[i], flamex[j], flamey[j]);
             }
@@ -283,11 +303,11 @@ public class Player extends SpaceObject {
 
     }
 
-    class Line2D{
+    class Line2D {
         private Vector2 point1;
         private Vector2 point2;
 
-        public Line2D(float x1, float y1, float x2, float y2){
+        public Line2D(float x1, float y1, float x2, float y2) {
             point1 = new Vector2();
             point2 = new Vector2();
             point1.x = x1;
@@ -296,12 +316,23 @@ public class Player extends SpaceObject {
             point2.y = y2;
         }
 
-        public float x1(){ return point1.x; }
-        public float x2(){ return point2.x; }
-        public float y1(){ return point1.y; }
-        public float y2(){ return point2.y; }
+        public float x1() {
+            return point1.x;
+        }
 
-        public void setLine(float x1, float y1, float x2, float y2){
+        public float x2() {
+            return point2.x;
+        }
+
+        public float y1() {
+            return point1.y;
+        }
+
+        public float y2() {
+            return point2.y;
+        }
+
+        public void setLine(float x1, float y1, float x2, float y2) {
             point1.x = x1;
             point1.y = y1;
             point2.x = x2;

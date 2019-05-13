@@ -53,15 +53,14 @@ public class FlyingSaucer extends SpaceObject {
         shapey = new float[6];
         setShape();
 
-        if(type == LARGE){
+        if (type == FlyingSaucer.LARGE) {
             score = 500;
-            Jukebox.loop("largesaucer", 0.15f);
-        }else if(type == SMALL){
+        } else if (type == FlyingSaucer.SMALL) {
             score = 1000;
-            Jukebox.loop("smallsaucer", 0.15f);
         }
+
         fireTimer = 0;
-        fireTime = 1;
+        fireTime = 1.2f;
 
         pathTimer = 0;
         pathTime1 = 2;
@@ -130,6 +129,7 @@ public class FlyingSaucer extends SpaceObject {
                     radians = MathUtils.atan2(player.getY() - y, player.getX() - x);
                 }
                 Bullet b = new Bullet(x, y, radians, false);
+                b.setLifeTime(1.5f);
                 b.setBulletColor(this.getColor());
                 bullets.add(b);
                 Jukebox.play("saucershoot", 0.5f);

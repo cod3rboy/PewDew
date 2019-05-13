@@ -114,7 +114,7 @@ public class MenuState extends GameState {
         musicBtnBounds = new Rectangle();
         isMusicOn = GameStateManager.getMusicSetting();
 
-        if(GameStateManager.getMusicSetting()) {
+        if(GameStateManager.getMusicSetting() && !Jukebox.isPlayingBackgroundMusic("chronos")) {
             // Start background music
             Jukebox.playBackgroundMusic("chronos");
         }
@@ -259,7 +259,7 @@ public class MenuState extends GameState {
             PewDew.cam.unproject(touchPoint.set(x, y, 0));
             for (int i = 0; i < menuItems.length; i++) {
                 Rectangle bounds = menuBounds.get(menuItems[i]);
-                System.out.println(String.format("Touched at %.2f , %.2f", touchPoint.x, touchPoint.y) + " and Bounds : " + menuItems[i] + " - " + bounds.toString());
+                //System.out.println(String.format("Touched at %.2f , %.2f", touchPoint.x, touchPoint.y) + " and Bounds : " + menuItems[i] + " - " + bounds.toString());
                 if (bounds.contains(touchPoint.x, touchPoint.y)) {
                     currentItem = i;
                     select();
@@ -299,7 +299,7 @@ public class MenuState extends GameState {
         // play
         if (currentItem == 0) {
             Jukebox.play("menuselect");
-            Jukebox.stopAllBackgroundMusic();
+            //Jukebox.stopAllBackgroundMusic();
             gsm.setState(GameStateManager.PLAY);
         } else if (currentItem == 1) { // High Score state
             Jukebox.play("menuselect");
