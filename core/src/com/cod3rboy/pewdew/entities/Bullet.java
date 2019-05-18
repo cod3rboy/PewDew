@@ -8,7 +8,7 @@ public class Bullet extends SpaceObject {
     private float lifeTime;
     private float lifeTimer;
     private boolean remove;
-
+    private boolean wrap;
     private float flashTimer = 0f;
     private float flashTime = 0.05f;
 
@@ -21,9 +21,7 @@ public class Bullet extends SpaceObject {
         this.y = y;
         this.radians = radians;
 
-        float speed = 350;
-        dx = MathUtils.cos(radians) * speed;
-        dy = MathUtils.sin(radians) * speed;
+        this.speed = 350;
 
         width = height = 3;
 
@@ -32,15 +30,23 @@ public class Bullet extends SpaceObject {
 
         bulletColor = new Color(1,1,1,1);
         isFlashingBullet = isFlashing;
+        wrap = true;
     }
 
+    public void setRadius(int radius){
+        this.width = this.height = radius;
+    }
     public boolean shouldRemove(){ return remove; }
     public void setBulletColor(Color color){ this.bulletColor = color; }
-
+    public void setWrap(boolean doWrap){
+        wrap = doWrap;
+    }
     public void update(float dt){
+        dx = MathUtils.cos(radians) * speed;
+        dy = MathUtils.sin(radians) * speed;
         x += dx * dt;
         y += dy * dt;
-        wrap();
+        if(wrap) wrap();
         lifeTimer += dt;
         if(lifeTimer > lifeTime){
             remove = true;

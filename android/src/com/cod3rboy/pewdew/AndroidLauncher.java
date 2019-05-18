@@ -10,6 +10,9 @@ public class AndroidLauncher extends AndroidApplication {
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
+		config.useImmersiveMode = true;
+		config.numSamples = 8;
+		config.stencil = 0;
 		initialize(new PewDew(), config);
 	}
 }

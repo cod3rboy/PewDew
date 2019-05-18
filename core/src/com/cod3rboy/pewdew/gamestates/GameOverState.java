@@ -24,6 +24,7 @@ public class GameOverState extends GameState {
     private ShapeRenderer sr;
     private boolean newHighScore;
     private long score;
+    private int level;
     private char[] newName;
     private int currentChar;
 
@@ -59,6 +60,7 @@ public class GameOverState extends GameState {
         sb = new SpriteBatch();
         sr = new ShapeRenderer();
         score = Save.gd.getTentativeScore();
+        level = Save.gd.getLevel();
         newHighScore = Save.gd.isHighScore(score);
         if (newHighScore) {
             newName = new char[]{'A', 'A', 'A', 'A', 'A', 'A'};
@@ -252,10 +254,18 @@ public class GameOverState extends GameState {
 
         if (newHighScore) { // If it is a new Highscore
 
-            s = "New High Score : " + Save.gd.getTentativeScore();
+            h -= 10;
+            s = "New High Score : " + score;
             gLayout.setText(font, s);
             w = gLayout.width;
             font.draw(sb, gLayout, (PewDew.WIDTH - w) / 2, h);
+            h -= gLayout.height + 10;
+
+            s = String.format("Level : %d", level);
+            gLayout.setText(font, s);
+            w = gLayout.width;
+            font.draw(sb, gLayout, (PewDew.WIDTH - w)/2, h );
+
             h -= gLayout.height + 20;
 
             gLayout.setText(font, "ZZZZZZ"); // Set a fixed text width
@@ -295,7 +305,10 @@ public class GameOverState extends GameState {
         // Not new highscore
         gameOverFont.setColor(1,1,1,1);
         gLayout.setText(gameOverFont, String.format("Score : %d", score));
-        gameOverFont.draw(sb,gLayout,(PewDew.WIDTH-gLayout.width)/2, (PewDew.HEIGHT-gLayout.height)/2);
+        gameOverFont.draw(sb,gLayout,(PewDew.WIDTH-gLayout.width)/2, ((PewDew.HEIGHT+gLayout.height)/2));
+        float y = (PewDew.HEIGHT+gLayout.height)/2 - gLayout.height - 20;
+        gLayout.setText(gameOverFont, String.format("Level : %d", level));
+        gameOverFont.draw(sb, gLayout, (PewDew.WIDTH-gLayout.width)/2, y);
         sb.end();
     }
 
@@ -324,7 +337,7 @@ public class GameOverState extends GameState {
     public void handleInput() {
         if(GameKeys.isPressed(GameKeys.ENTER)){
             if(newHighScore){
-                Save.gd.addHighScore(Save.gd.getTentativeScore(), new String(newName));
+                Save.gd.addHighScore(Save.gd.getTentativeScore(), new String(newName), level);
                 Save.save();
             }
             gsm.setState(GameStateManager.MENU);
@@ -367,7 +380,7 @@ public class GameOverState extends GameState {
             if(continueBounds.contains(touchPoint.x, touchPoint.y)){
                 Jukebox.play("menuselect");
                 if(newHighScore){
-                    Save.gd.addHighScore(Save.gd.getTentativeScore(), new String(newName));
+                    Save.gd.addHighScore(Save.gd.getTentativeScore(), new String(newName), level);
                     Save.save();
                 }
                 gsm.setState(GameStateManager.MENU);

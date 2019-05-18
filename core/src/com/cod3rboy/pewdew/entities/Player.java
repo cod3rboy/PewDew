@@ -4,14 +4,17 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.cod3rboy.pewdew.PewDew;
+import com.cod3rboy.pewdew.entities.powerups.*;
 import com.cod3rboy.pewdew.managers.Jukebox;
 
 import java.util.ArrayList;
 
-public class Player extends SpaceObject {
+public class Player extends SpaceObject implements PowerUp.IPowerable {
 
-    private final int MAX_BULLETS = 80;
+    private int MAX_BULLETS = 80;
     private ArrayList<Bullet> bullets;
+    private float shootTime =  0.15f;
+    private float bulletLifeTime = .8f;
 
     private float[] flamex;
     private float[] flamey;
@@ -37,6 +40,13 @@ public class Player extends SpaceObject {
 
 
     private float bulletRadians;
+
+    private boolean shield;
+
+    // Timer to initially apply forcefield to player for 2 sec
+    private float forceFieldTimer = 0;
+    private boolean forceField = true;
+
 
     public Player(ArrayList<Bullet> bullets) {
         this.bullets = bullets;
@@ -66,6 +76,7 @@ public class Player extends SpaceObject {
         extraLives = 3;
         requiredScore = 10000;
 
+        shield = false;
     }
 
     private void setShape() {
@@ -129,6 +140,8 @@ public class Player extends SpaceObject {
         y = PewDew.HEIGHT / 2;
         setShape();
         hit = dead = false;
+        forceField = true;
+        forceFieldTimer = 0;
     }
 
     public long getScore() {
@@ -138,6 +151,8 @@ public class Player extends SpaceObject {
     public int getLives() {
         return extraLives;
     }
+
+    public float getShootTime() { return shootTime; }
 
     public void loseLife() {
         extraLives--;
@@ -149,7 +164,9 @@ public class Player extends SpaceObject {
 
     public void shoot() {
         if (bullets.size() == MAX_BULLETS) return;
-        bullets.add(new Bullet(x,y, bulletRadians, true));
+        Bullet b = new Bullet(x, y , bulletRadians, true);
+        b.setLifeTime(bulletLifeTime);
+        bullets.add(b);
         //bullets.add(new Bullet(x,y, radians, true));
         Jukebox.play("shoot", 0.8f);
     }
@@ -262,6 +279,15 @@ public class Player extends SpaceObject {
             thrustersOn = false;
         }
 
+        // update forcefield
+        if(forceField){
+            forceFieldTimer += dt;
+            if(forceFieldTimer > 2){ // exceeds 2 secs
+                forceFieldTimer = 0;
+                forceField = false;
+            }
+        }
+
         // screen wrap
         wrap();
     }
@@ -299,8 +325,88 @@ public class Player extends SpaceObject {
                 sr.line(flamex[i], flamey[i], flamex[j], flamey[j]);
             }
         }
+
         sr.end();
 
+        // draw shield circle
+        if(shield || forceField){
+            float maxX = shapex[0];
+            float minX = shapex[0];
+            for(int i=0; i<shapex.length;i++) {
+                if(shapex[i] > maxX) maxX = shapex[i];
+                else if(shapex[i] < minX) minX = shapex[i];
+            }
+            float maxY = shapey[0];
+            float minY = shapey[0];
+            for(int i=0; i<shapey.length;i++) {
+                if(shapey[i] > maxY) maxY = shapey[i];
+                else if(shapey[i] < minY) minY = shapey[i];
+            }
+            float xOffset = (maxX - minX)/2;
+            float yOffset = (maxY - minY)/2;
+            sr.begin(ShapeRenderer.ShapeType.Line);
+            sr.setColor(MathUtils.random(1f), MathUtils.random(1f), MathUtils.random(1f), 1);
+            sr.circle(minX + xOffset, minY + yOffset, (xOffset > yOffset) ? xOffset + 10 : yOffset + 10, 50);
+            sr.end();
+        }
+
+    }
+
+
+
+    public void turnOffShield(){
+        shield = false;
+        forceField = false;
+        forceFieldTimer = 0;
+    }
+
+    public boolean isShielded(){ return shield || forceField; }
+
+    @Override
+    public void powerApplied(int powerid) {
+        switch(powerid){
+            case ShieldPowerUp.POWER_UP_SHIELD:
+                shield = true;
+                break;
+            case FrenzyPowerUp.POWER_UP_FRENZY:
+                shootTime = 0.05f;
+                bulletLifeTime = 2f;
+                MAX_BULLETS = 200;
+                break;
+        }
+    }
+
+    @Override
+    public void powerReset(int powerid) {
+        switch(powerid){
+            case ShieldPowerUp.POWER_UP_SHIELD:
+                shield = false;
+                break;
+            case FrenzyPowerUp.POWER_UP_FRENZY:
+                shootTime = 0.15f;
+                bulletLifeTime = 0.8f;
+                MAX_BULLETS = 80;
+                break;
+        }
+    }
+
+    @Override
+    public boolean powerTouched(float x, float y, float w, float h) {
+        float maxX = shapex[0];
+        float minX = shapex[0];
+        for(int i=0; i<shapex.length;i++) {
+            if(shapex[i] > maxX) maxX = shapex[i];
+            else if(shapex[i] < minX) minX = shapex[i];
+        }
+        float maxY = shapey[0];
+        float minY = shapey[0];
+        for(int i=0; i<shapey.length;i++) {
+            if(shapey[i] > maxY) maxY = shapey[i];
+            else if(shapey[i] < minY) minY = shapey[i];
+        }
+
+        // Use AABB algorithm to detect player/power collision
+        return (minX < x+w && maxX > x) && (minY < y+h && maxY > y) && !hit;
     }
 
     class Line2D {

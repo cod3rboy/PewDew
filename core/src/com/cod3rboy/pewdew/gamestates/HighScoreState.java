@@ -27,6 +27,7 @@ public class HighScoreState extends GameState {
 
     private long[] highScores;
     private String[] names;
+    private int[] levels;
 
     private GlyphLayout gLayout;
 
@@ -52,6 +53,7 @@ public class HighScoreState extends GameState {
         sr = new ShapeRenderer();
         gLayout = new GlyphLayout();
         FreeTypeFontGenerator.FreeTypeFontParameter param = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        param.mono = false;
         FreeTypeFontGenerator gen = new FreeTypeFontGenerator(
                 Gdx.files.internal("fonts/Hyperspace Bold.ttf")
         );
@@ -61,6 +63,7 @@ public class HighScoreState extends GameState {
         Save.load();
         highScores = Save.gd.getHighScores();
         names = Save.gd.getNames();
+        levels = Save.gd.getLevels();
 
         backOption = "Back";
         backBounds = new Rectangle();
@@ -154,14 +157,16 @@ public class HighScoreState extends GameState {
         s = "High Scores";
         gLayout.setText(font, s);
         w = gLayout.width;
-        h = PewDew.HEIGHT - PewDew.HEIGHT/6f;
+        h = PewDew.HEIGHT - PewDew.HEIGHT/10f;
         font.draw(sb, gLayout, (PewDew.WIDTH - w) / 2, h);
         h -= gLayout.height + 30;
 
+        s = String.format("%-3s.  %-6s  %-10s  %-5s","SNo", "Name", "High Score", "Level");
+        gLayout.setText(font, s);
+        font.draw(sb, gLayout, (PewDew.WIDTH - gLayout.width)/2, h);
+        h -= gLayout.height + 20;
         for (int i = 0; i < highScores.length; i++) {
-            s = String.format(
-                    "%3d. %6s %8s", i + 1, names[i],highScores[i]
-            );
+            s = String.format("%-3d   %-6s  %-10s  %-5d", i + 1, names[i],highScores[i], levels[i]);
             gLayout.setText(font, s);
             w = gLayout.width;
             font.draw(sb, gLayout, (PewDew.WIDTH - w) / 2, h);
