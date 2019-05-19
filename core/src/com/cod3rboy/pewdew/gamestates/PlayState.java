@@ -103,11 +103,18 @@ public class PlayState extends GameState {
         super(gsm);
     }
 
+    private static int STARS_COUNT = 200;
+    private static float stars[][];
+
     @Override
     public void init() {
         sr = new ShapeRenderer();
         sb = new SpriteBatch();
-
+        stars = new  float[STARS_COUNT][2];
+        for(int i=0; i<stars.length;i++) {
+            stars[i][0] = MathUtils.random(0, PewDew.WIDTH);
+            stars[i][1] = MathUtils.random(0, PewDew.HEIGHT);
+        }
         controller = new DualStickController(
                 new Vector2(120, 120),
                 new Vector2(PewDew.WIDTH - 120, 120)
@@ -663,11 +670,20 @@ public class PlayState extends GameState {
 
     }
 
+    private void drawBackground(ShapeRenderer sr){
+        sr.begin(ShapeRenderer.ShapeType.Point);
+        sr.setColor(1,1,1,1);
+        for(int i=0; i<stars.length; i++) sr.point(stars[i][0], stars[i][1], 0);
+        sr.end();
+    }
 
     @Override
     public void draw() {
         sr.setProjectionMatrix(PewDew.cam.combined);
         sb.setProjectionMatrix(PewDew.cam.combined);
+
+        // draw stars background
+        drawBackground(sr);
 
         // draw player
         player.draw(sr);
