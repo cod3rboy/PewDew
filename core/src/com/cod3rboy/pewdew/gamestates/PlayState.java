@@ -1,5 +1,6 @@
 package com.cod3rboy.pewdew.gamestates;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.cod3rboy.pewdew.PewDew;
+import com.cod3rboy.pewdew.Services;
 import com.cod3rboy.pewdew.entities.Asteroid;
 import com.cod3rboy.pewdew.entities.Bullet;
 import com.cod3rboy.pewdew.entities.FlyingSaucer;
@@ -110,8 +112,8 @@ public class PlayState extends GameState {
     public void init() {
         sr = new ShapeRenderer();
         sb = new SpriteBatch();
-        stars = new  float[STARS_COUNT][2];
-        for(int i=0; i<stars.length;i++) {
+        stars = new float[STARS_COUNT][2];
+        for (int i = 0; i < stars.length; i++) {
             stars[i][0] = MathUtils.random(0, PewDew.WIDTH);
             stars[i][1] = MathUtils.random(0, PewDew.HEIGHT);
         }
@@ -182,9 +184,13 @@ public class PlayState extends GameState {
             // Play background music deepspace
             Jukebox.playBackgroundMusic("deepspace");
         }
+
+        // Load an interstitial ad in background to show when game is paused
+        if (Gdx.app.getType() == Application.ApplicationType.Android)
+            ((Services) Gdx.app).loadInterstitialAd();
     }
 
-    private void levelUp(){
+    private void levelUp() {
         level++;
         fsTime--;
         FlyingSaucer.largeScore += 0.1 * FlyingSaucer.largeScore;
@@ -193,7 +199,7 @@ public class PlayState extends GameState {
         Asteroid.mediumScore += 0.1 * Asteroid.mediumScore;
         Asteroid.largeScore += 0.1 * Asteroid.largeScore;
         powerSpawnDelay += level;
-        if(level > 5) {
+        if (level > 5) {
             wsTime--;
             Warship.damageScore += 0.1 * Warship.damageScore;
         }
@@ -297,13 +303,13 @@ public class PlayState extends GameState {
         }
 
         // Update level up animation timer
-        if(!gamePaused && animLevel){
+        if (!gamePaused && animLevel) {
             animTimer += dt;
-            levelFont.setColor(1,1,1,1-(animTimer/animTime));
-            if(animTimer > animTime){
+            levelFont.setColor(1, 1, 1, 1 - (animTimer / animTime));
+            if (animTimer > animTime) {
                 animTimer = 0;
                 animLevel = false;
-                levelFont.setColor(1,1,1,1);
+                levelFont.setColor(1, 1, 1, 1);
             }
         }
 
@@ -356,7 +362,7 @@ public class PlayState extends GameState {
                 warship = null;
                 Jukebox.stop("warship-entry");
             }
-        } else if(level >= 5) { // Warship starts from 5th level
+        } else if (level >= 5) { // Warship starts from 5th level
             wsTimer += dt;
             if (wsTimer > wsTime && flyingSaucer == null) {
                 wsTimer = 0;
@@ -670,10 +676,10 @@ public class PlayState extends GameState {
 
     }
 
-    private void drawBackground(ShapeRenderer sr){
+    private void drawBackground(ShapeRenderer sr) {
         sr.begin(ShapeRenderer.ShapeType.Point);
-        sr.setColor(1,1,1,1);
-        for(int i=0; i<stars.length; i++) sr.point(stars[i][0], stars[i][1], 0);
+        sr.setColor(1, 1, 1, 1);
+        for (int i = 0; i < stars.length; i++) sr.point(stars[i][0], stars[i][1], 0);
         sr.end();
     }
 
@@ -726,9 +732,9 @@ public class PlayState extends GameState {
         font.draw(sb, gLayout, PewDew.WIDTH / 2 - gLayout.width / 2, 420);
 
         // Draw Level
-        if(!gamePaused && animLevel){
-            gLayout.setText(levelFont,String.format("Level - %d", level));
-            levelFont.draw(sb, gLayout, (PewDew.WIDTH-gLayout.width)/2, (PewDew.HEIGHT+gLayout.height)/2);
+        if (!gamePaused && animLevel) {
+            gLayout.setText(levelFont, String.format("Level - %d", level));
+            levelFont.draw(sb, gLayout, (PewDew.WIDTH - gLayout.width) / 2, (PewDew.HEIGHT + gLayout.height) / 2);
         }
 
         // draw game paused text
@@ -854,6 +860,9 @@ public class PlayState extends GameState {
         gamePaused = true;
         slomoFactor = 0.05f;
         Jukebox.stopAll();
+        // Show Interstitial Ad when game paused
+        if (Gdx.app.getType() == Application.ApplicationType.Android)
+            if (firstTouched) ((Services) Gdx.app).showInterstitialAd();
     }
 
     private void resumeGame() {
@@ -869,6 +878,9 @@ public class PlayState extends GameState {
             }
         }
         if (warship != null) Jukebox.loop("warship-entry");
+        // Load Interstitial Ad when game resumed
+        if (Gdx.app.getType() == Application.ApplicationType.Android)
+            ((Services) Gdx.app).loadInterstitialAd();
     }
 
     private boolean isGamePaused() {

@@ -1,5 +1,6 @@
 package com.cod3rboy.pewdew.gamestates;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -10,6 +11,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.cod3rboy.pewdew.PewDew;
+import com.cod3rboy.pewdew.Services;
 import com.cod3rboy.pewdew.entities.Star;
 import com.cod3rboy.pewdew.managers.GameKeys;
 import com.cod3rboy.pewdew.managers.GameStateManager;
@@ -104,6 +106,9 @@ public class GameOverState extends GameState {
             Jukebox.playBackgroundMusic("deepspace");
         }
 
+        // Show one time Interstitial Ad on game over screen
+        if(Gdx.app.getType() == Application.ApplicationType.Android)
+            ((Services) Gdx.app).showInterstitialAd();
     }
 
     private void spawnStars() {
