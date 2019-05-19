@@ -228,7 +228,7 @@ public class Player extends SpaceObject implements PowerUp.IPowerable {
         // Check extra lives
         if (score >= requiredScore) {
             extraLives++;
-            requiredScore += 10000;
+            requiredScore += requiredScore * 1.5f;
             Jukebox.play("extralife");
         }
 

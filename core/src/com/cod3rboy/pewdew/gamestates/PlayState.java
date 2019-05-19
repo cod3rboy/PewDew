@@ -90,7 +90,7 @@ public class PlayState extends GameState {
     // Warship
     private Warship warship;
     private float wsTimer = 0;
-    private float wsTime = 6;
+    private float wsTime = 40; // 40 seconds
 
     // Level up animation
 
@@ -159,7 +159,7 @@ public class PlayState extends GameState {
         hudPlayer.turnOffShield();
 
         fsTimer = 0;
-        fsTime = 60; // 15 secs after flying saucer appears
+        fsTime = 30; // 30 secs after flying saucer appears
         enemyBullets = new ArrayList<Bullet>();
 
         // Setup bg music
@@ -174,6 +174,21 @@ public class PlayState extends GameState {
         if (!GameStateManager.getMusicSetting()) {
             // Play background music deepspace
             Jukebox.playBackgroundMusic("deepspace");
+        }
+    }
+
+    private void levelUp(){
+        level++;
+        fsTime--;
+        FlyingSaucer.largeScore += 0.1 * FlyingSaucer.largeScore;
+        FlyingSaucer.smallScore += 0.1 * FlyingSaucer.smallScore;
+        Asteroid.smallScore += 0.1 * Asteroid.smallScore;
+        Asteroid.mediumScore += 0.1 * Asteroid.mediumScore;
+        Asteroid.largeScore += 0.1 * Asteroid.largeScore;
+        powerSpawnDelay += level;
+        if(level > 5) {
+            wsTime--;
+            Warship.damageScore += 0.1 * Warship.damageScore;
         }
     }
 
@@ -269,7 +284,7 @@ public class PlayState extends GameState {
 
         // next level
         if (asteroids.size() == 0) {
-            level++;
+            levelUp();
             animLevel = true;
             spawnAsteroids();
         }
@@ -334,9 +349,9 @@ public class PlayState extends GameState {
                 warship = null;
                 Jukebox.stop("warship-entry");
             }
-        } else {
+        } else if(level >= 5) { // Warship starts from 5th level
             wsTimer += dt;
-            if (wsTimer > wsTime) {
+            if (wsTimer > wsTime && flyingSaucer == null) {
                 wsTimer = 0;
                 int randDir = MathUtils.random(DIRECTION_LEFT, Warship.DIRECTION_DOWN);
                 float randX = 0, randY = 0;
@@ -373,7 +388,7 @@ public class PlayState extends GameState {
         // update flying saucer
         if (flyingSaucer == null) {
             fsTimer += dt;
-            if (fsTimer > fsTime) {
+            if (fsTimer > fsTime && warship == null) {
                 fsTimer = 0;
                 int type = (MathUtils.random() < 0.5) ? FlyingSaucer.SMALL : FlyingSaucer.LARGE;
                 int direction = MathUtils.random() < 0.5 ? FlyingSaucer.RIGHT : FlyingSaucer.LEFT;
@@ -694,6 +709,7 @@ public class PlayState extends GameState {
         gLayout.setText(font, String.format("Level - %-4d", level));
         font.draw(sb, gLayout, PewDew.WIDTH / 2 - gLayout.width / 2, 420);
 
+        // Draw Level
         if(!gamePaused && animLevel){
             gLayout.setText(levelFont,String.format("Level - %d", level));
             levelFont.draw(sb, gLayout, (PewDew.WIDTH-gLayout.width)/2, (PewDew.HEIGHT+gLayout.height)/2);

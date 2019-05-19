@@ -157,11 +157,12 @@ public class HighScoreState extends GameState {
         s = "High Scores";
         gLayout.setText(font, s);
         w = gLayout.width;
+
         h = PewDew.HEIGHT - PewDew.HEIGHT/10f;
         font.draw(sb, gLayout, (PewDew.WIDTH - w) / 2, h);
         h -= gLayout.height + 30;
 
-        s = String.format("%-3s.  %-6s  %-10s  %-5s","SNo", "Name", "High Score", "Level");
+        s = String.format("%-3s.  %-6s  %-10s  %-5s","SNo", "Name", "Score", "Level");
         gLayout.setText(font, s);
         font.draw(sb, gLayout, (PewDew.WIDTH - gLayout.width)/2, h);
         h -= gLayout.height + 20;

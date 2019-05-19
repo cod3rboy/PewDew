@@ -9,6 +9,9 @@ public class Asteroid extends SpaceObject {
     public static final int SMALL = 0;
     public static final int MEDIUM = 1;
     public static final int LARGE = 2;
+    public static int smallScore = 150;
+    public static int mediumScore = 100;
+    public static int largeScore = 50;
 
     private int numPoints;
     private float[] dists;
@@ -31,17 +34,17 @@ public class Asteroid extends SpaceObject {
             numPoints = 8;
             width = height = 30;
             speed = MathUtils.random(70, 100);
-            score = 200;
+            score = smallScore;
         }else if(type == MEDIUM) {
             numPoints = 10;
             width = height = 45;
             speed = MathUtils.random(50,60);
-            score = 150;
+            score = mediumScore;
         }else if(type == LARGE){
             numPoints = 12;
             width = height = 70;
             speed = MathUtils.random(20, 30);
-            score = 100;
+            score = largeScore;
         }
 
         rotationSpeed = MathUtils.random(-1, 1);

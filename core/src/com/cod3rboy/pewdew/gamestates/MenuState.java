@@ -1,5 +1,6 @@
 package com.cod3rboy.pewdew.gamestates;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.cod3rboy.pewdew.PewDew;
+import com.cod3rboy.pewdew.Services;
 import com.cod3rboy.pewdew.entities.Asteroid;
 import com.cod3rboy.pewdew.entities.Star;
 import com.cod3rboy.pewdew.managers.GameKeys;
@@ -57,6 +59,11 @@ public class MenuState extends GameState {
     private Rectangle musicBtnBounds;
     private boolean isMusicOn;
 
+    // Share button
+    private Rectangle shareBtnBounds;
+
+    // Rate button
+    private Rectangle rateBtnBounds;
 
     public MenuState(GameStateManager gsm) {
         super(gsm);
@@ -113,6 +120,9 @@ public class MenuState extends GameState {
         musicFontLayout = new GlyphLayout();
         musicBtnBounds = new Rectangle();
         isMusicOn = GameStateManager.getMusicSetting();
+
+        shareBtnBounds = new Rectangle();
+        rateBtnBounds = new Rectangle();
 
         if(GameStateManager.getMusicSetting() && !Jukebox.isPlayingBackgroundMusic("chronos")) {
             // Start background music
@@ -200,18 +210,17 @@ public class MenuState extends GameState {
                 sb,
                 gLayout,
                 (PewDew.WIDTH - width) / 2,
-                PewDew.HEIGHT - PewDew.HEIGHT / 6f
+                PewDew.HEIGHT * 0.9f
         );
-
         // Draw menu
         for (int i = 0; i < menuItems.length; i++) {
-            if (currentItem == i) font.setColor(Color.RED);
+            if (currentItem == i) font.setColor(Color.YELLOW);
             else font.setColor(Color.WHITE);
             gLayout.setText(font, menuItems[i]);
             width = gLayout.width;
             // Update Bounds
             Rectangle bounds = menuBounds.get(menuItems[i]);
-            bounds.set((PewDew.WIDTH - width) / 2, 200 - 60 * i, width, gLayout.height);
+            bounds.set((PewDew.WIDTH - width) / 2, 250 - 60 * i, width, gLayout.height);
 
             // Draw
             font.draw(sb, gLayout, bounds.x, bounds.y + bounds.height);
@@ -228,13 +237,39 @@ public class MenuState extends GameState {
         musicBtnBounds.setWidth(musicFontLayout.width);
         musicBtnBounds.setHeight(musicFontLayout.height);
         musicBtnBounds.x = PewDew.WIDTH - musicBtnBounds.width - 10;
-        musicBtnBounds.y = PewDew.HEIGHT - musicBtnBounds.height - 15;
+//        musicBtnBounds.y = PewDew.HEIGHT - musicBtnBounds.height - 15;
+        musicBtnBounds.y = 15;
         musicFont.draw(
                 sb,
                 musicFontLayout,
                 musicBtnBounds.x,
                 musicBtnBounds.y + musicBtnBounds.height
         );
+
+        // Draw Share Button
+        BitmapFont shareFont = musicFont; // Use same font for share btn as music btn
+        shareFont.setColor(0,1,0,1);
+        GlyphLayout shareLayout = musicFontLayout; // Use same glyphlayout for share btn as music btn
+        shareLayout.setText(shareFont, "Share Me");
+        shareBtnBounds.setWidth(shareLayout.width);
+        shareBtnBounds.setHeight(shareLayout.height);
+        shareBtnBounds.x = 10;
+//        shareBtnBounds.y = PewDew.HEIGHT - shareBtnBounds.height - 15;
+        shareBtnBounds.y = 15;
+        shareFont.draw(sb,shareLayout,shareBtnBounds.x, shareBtnBounds.y + shareBtnBounds.height);
+
+        // Draw Rate Button
+        BitmapFont rateFont = musicFont; // Use same font for share btn as music btn
+        shareFont.setColor(0,1,0,1);
+        GlyphLayout rateLayout = musicFontLayout; // Use same glyphlayout for share btn as music btn
+        rateLayout.setText(rateFont, "Rate Me");
+        rateBtnBounds.setWidth(rateLayout.width);
+        rateBtnBounds.setHeight(rateLayout.height);
+        rateBtnBounds.x = (PewDew.WIDTH-rateBtnBounds.width)/2;
+//        rateBtnBounds.y = PewDew.HEIGHT - rateBtnBounds.height - 15;
+        rateBtnBounds.y = 15;
+        rateFont.draw(sb,rateLayout,rateBtnBounds.x, rateBtnBounds.y + rateBtnBounds.height);
+
         sb.end();
     }
 
@@ -281,6 +316,25 @@ public class MenuState extends GameState {
                 }
                 return;
             }
+
+            // Share Button Touch
+            if(shareBtnBounds.contains(touchPoint.x, touchPoint.y)){
+                // Ensure platform is android
+                Application.ApplicationType type = Gdx.app.getType();
+                if(type != Application.ApplicationType.Android) return;
+                Jukebox.play("menuselect");
+                ((Services) Gdx.app).share();
+            }
+
+            // Rate Button Touch
+            if(rateBtnBounds.contains(touchPoint.x, touchPoint.y)){
+                // Ensure platform is android
+                Application.ApplicationType type = Gdx.app.getType();
+                if(type != Application.ApplicationType.Android) return;
+                Jukebox.play("menuselect");
+                ((Services) Gdx.app).rate();
+            }
+
         }
         if (Gdx.input.isTouched()) {
             float x = Gdx.input.getX();

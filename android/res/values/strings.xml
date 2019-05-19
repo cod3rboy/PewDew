@@ -2,5 +2,5 @@
 <resources>
 
     <string name="app_name">PewDew</string>
-
+    <string name="share_msg">Wanna shoot 🔫 some asteroids in the space 🌌 ??\nTry this cool space shooting game ...\n\nTap on link to download now: https://play.google.com/store/apps/details?id=%s</string>
 </resources>

@@ -14,6 +14,9 @@ public class FlyingSaucer extends SpaceObject {
     public static final int LARGE = 0;
     public static final int SMALL = 1;
 
+    public static int largeScore = 200;
+    public static int smallScore = 300;
+
     private int score;
 
     private float fireTimer;
@@ -54,9 +57,9 @@ public class FlyingSaucer extends SpaceObject {
         setShape();
 
         if (type == FlyingSaucer.LARGE) {
-            score = 500;
+            score = largeScore;
         } else if (type == FlyingSaucer.SMALL) {
-            score = 1000;
+            score = smallScore;
         }
 
         fireTimer = 0;

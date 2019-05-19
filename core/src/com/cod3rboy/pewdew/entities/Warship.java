@@ -27,7 +27,7 @@ public class Warship extends SpaceObject {
     private float shootTimer = 0;
     private float shootTime = 1.5f;
 //    private long score = 5000; // 5000 kill points
-    private long damageScore = 100;
+    public static long damageScore = 100;
     private Color color;
     private Color thrusterColor;
     private float flashTimer = 0;
