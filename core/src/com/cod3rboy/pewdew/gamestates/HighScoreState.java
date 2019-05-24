@@ -19,6 +19,8 @@ import com.cod3rboy.pewdew.managers.Save;
 
 import java.util.ArrayList;
 
+import de.golfgl.gdxgamesvcs.GameServiceException;
+
 public class HighScoreState extends GameState {
 
     private SpriteBatch sb;
@@ -34,6 +36,8 @@ public class HighScoreState extends GameState {
     private String backOption;
     private Rectangle backBounds;
     private Vector3 touchPoint;
+
+    private Rectangle leaderBounds;
 
     private ArrayList<Asteroid> asteroids;
 
@@ -65,8 +69,9 @@ public class HighScoreState extends GameState {
         names = Save.gd.getNames();
         levels = Save.gd.getLevels();
 
-        backOption = "Back";
+        backOption = "BACK";
         backBounds = new Rectangle();
+        leaderBounds = new Rectangle();
         touchPoint = new Vector3();
 
         asteroids = new ArrayList<Asteroid>();
@@ -154,7 +159,7 @@ public class HighScoreState extends GameState {
         String s;
         float w,h;
 
-        s = "High Scores";
+        s = "HIGH SCORES";
         gLayout.setText(font, s);
         w = gLayout.width;
 
@@ -162,7 +167,7 @@ public class HighScoreState extends GameState {
         font.draw(sb, gLayout, (PewDew.WIDTH - w) / 2, h);
         h -= gLayout.height + 30;
 
-        s = String.format("%-3s.  %-6s  %-10s  %-5s","SNo", "Name", "Score", "Level");
+        s = String.format("%-3s.  %-6s  %-10s  %-5s","SNO", "NAME", "SCORE", "LEVEL");
         gLayout.setText(font, s);
         font.draw(sb, gLayout, (PewDew.WIDTH - gLayout.width)/2, h);
         h -= gLayout.height + 20;
@@ -179,6 +184,13 @@ public class HighScoreState extends GameState {
         backBounds.set(20, PewDew.HEIGHT - 30, gLayout.width, gLayout.height);
         font.draw(sb,gLayout,backBounds.x, backBounds.y + gLayout.height);
 
+        if(PewDew.signedIn) {
+            // Draw leaderboard button
+            gLayout.setText(font, "LEADERBOARD");
+            leaderBounds.set(PewDew.WIDTH - gLayout.width - 20, PewDew.HEIGHT - 30, gLayout.width, gLayout.height);
+            font.draw(sb, gLayout, leaderBounds.x, leaderBounds.y + leaderBounds.height);
+        }
+
         sb.end();
 
     }
@@ -189,13 +201,21 @@ public class HighScoreState extends GameState {
             gsm.setState(GameStateManager.MENU);
         }
 
-        if(Gdx.input.isTouched()){
+        if(Gdx.input.justTouched()){
             float x = Gdx.input.getX();
             float y = Gdx.input.getY();
             PewDew.cam.unproject(touchPoint.set(x, y ,0));
             if(backBounds.contains(touchPoint.x, touchPoint.y)){
                 Jukebox.play("menuselect");
                 gsm.setState(GameStateManager.MENU);
+            }
+            if(leaderBounds.contains(touchPoint.x, touchPoint.y) && PewDew.signedIn){
+                Jukebox.play("menuselect");
+                try {
+                    PewDew.gsClient.showLeaderboards(PewDew.LEADERBOARD_ID);
+                }catch(GameServiceException ex){
+                    Gdx.app.log("Google Play Games", "Exception occurred while fetching leaderboard");
+                }
             }
         }
     }

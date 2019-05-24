@@ -38,7 +38,7 @@ public class GameOverState extends GameState {
     private BitmapFont font;
     private GlyphLayout gLayout;
 
-    private String continueOption = "continue";
+    private String continueOption = "CONTINUE";
     private Rectangle continueBounds;
     private Vector3 touchPoint;
 
@@ -82,10 +82,10 @@ public class GameOverState extends GameState {
         touchPoint = new Vector3();
 
         keys = new String[]{
-                "a", "b", "c", "d", "e", "f", "g",
-                "h", "i", "j", "k", "l", "m", "n",
-                "o", "p", "q", "r", "s", "t", "u",
-                "v", "w", "x", "y", "z", "Left", "Right"
+                "A", "B", "C", "D", "E", "F", "G",
+                "H", "I", "J", "K", "L", "M", "N",
+                "O", "P", "Q", "R", "S", "T", "U",
+                "V", "W", "X", "Y", "Z", "LEFT", "RIGHT"
         };
         keyBounds = new Rectangle[keys.length];
         for(int i=0; i<keyBounds.length; i++) keyBounds[i] = new Rectangle();
@@ -109,6 +109,11 @@ public class GameOverState extends GameState {
         // Show one time Interstitial Ad on game over screen
         if(Gdx.app.getType() == Application.ApplicationType.Android)
             ((Services) Gdx.app).showInterstitialAd();
+
+        // Publish tentative score to the play games leaderboard
+        if(PewDew.signedIn){
+            PewDew.gsClient.submitToLeaderboard(PewDew.LEADERBOARD_ID, Save.gd.getTentativeScore(), null);
+        }
     }
 
     private void spawnStars() {
@@ -245,7 +250,7 @@ public class GameOverState extends GameState {
         sb.begin();
         String s;
         float w,h;
-        s = "Game Over";
+        s = "GAME OVER";
         gameOverFont.setColor(1,0,0,1);
         gLayout.setText(gameOverFont, s);
         w = gLayout.width;
@@ -260,13 +265,13 @@ public class GameOverState extends GameState {
         if (newHighScore) { // If it is a new Highscore
 
             h -= 10;
-            s = "New High Score : " + score;
+            s = "NEW HIGH SCORE : " + score;
             gLayout.setText(font, s);
             w = gLayout.width;
             font.draw(sb, gLayout, (PewDew.WIDTH - w) / 2, h);
             h -= gLayout.height + 10;
 
-            s = String.format("Level : %d", level);
+            s = String.format("LEVEL : %d", level);
             gLayout.setText(font, s);
             w = gLayout.width;
             font.draw(sb, gLayout, (PewDew.WIDTH - w)/2, h );
@@ -309,10 +314,10 @@ public class GameOverState extends GameState {
 
         // Not new highscore
         gameOverFont.setColor(1,1,1,1);
-        gLayout.setText(gameOverFont, String.format("Score : %d", score));
+        gLayout.setText(gameOverFont, String.format("SCORE : %d", score));
         gameOverFont.draw(sb,gLayout,(PewDew.WIDTH-gLayout.width)/2, ((PewDew.HEIGHT+gLayout.height)/2));
         float y = (PewDew.HEIGHT+gLayout.height)/2 - gLayout.height - 20;
-        gLayout.setText(gameOverFont, String.format("Level : %d", level));
+        gLayout.setText(gameOverFont, String.format("LEVEL : %d", level));
         gameOverFont.draw(sb, gLayout, (PewDew.WIDTH-gLayout.width)/2, y);
         sb.end();
     }

@@ -1,5 +1,6 @@
 package com.cod3rboy.pewdew;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -13,12 +14,15 @@ import com.cod3rboy.pewdew.managers.Jukebox;
 
 import java.util.HashMap;
 
+import de.golfgl.gdxgamesvcs.IGameServiceClient;
+
 public class PewDew extends ApplicationAdapter {
 	public static int WIDTH;
 	public static int HEIGHT;
 	public static OrthographicCamera cam;
 	private static ExtendViewport viewport;
 	private GameStateManager gsm;
+	public static boolean onAndroid;
 	public static HashMap<String,Texture> textures;
 	static{
 		textures = new HashMap<String, Texture>();
@@ -28,9 +32,14 @@ public class PewDew extends ApplicationAdapter {
 		textures.put("icon-shield", new Texture(Gdx.files.internal("textures/shield.png")));
 		textures.put("icon-frenzy", new Texture(Gdx.files.internal("textures/frenzy.png")));
 	}
-
+	// Game Services Client
+	public static IGameServiceClient gsClient;
+	public static boolean signedIn = false;
+	public static String playerName = "";
+	public static final String LEADERBOARD_ID = "CgkIn9T-td8aEAIQAw";
 	@Override
 	public void create() {
+		onAndroid = Gdx.app.getType() == Application.ApplicationType.Android;
 	    // Keep aspect ratio in mind while setting width and height
 		WIDTH = 800;
 		HEIGHT = 450;
@@ -67,6 +76,12 @@ public class PewDew extends ApplicationAdapter {
 
 		// Load textures
 		loadTextures();
+
+		gsClient.resumeSession();
+		if(gsClient.isSessionActive()) {
+			signedIn = true;
+			playerName = gsClient.getPlayerDisplayName();
+		}
 	}
 
 	@Override
@@ -87,11 +102,13 @@ public class PewDew extends ApplicationAdapter {
 	@Override
 	public void pause() {
 		super.pause();
+		gsClient.pauseSession();
 	}
 
 	@Override
 	public void resume() {
 		super.resume();
+		gsClient.resumeSession();
 	}
 
 	@Override

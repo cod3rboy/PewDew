@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.backends.android.AndroidApplication;
@@ -22,11 +23,16 @@ import com.google.android.gms.ads.MobileAds;
 
 import java.util.List;
 
+import de.golfgl.gdxgamesvcs.GpgsClient;
+import de.golfgl.gdxgamesvcs.IGameServiceListener;
+
+// @todo fix play services crash on some devices
 public class AndroidLauncher extends AndroidApplication implements Services {
 
     private InterstitialAd interstitialAd;
-    private final String AD_APP_ID = "ca-app-pub-3940256099942544~3347511713";
-    private final String INTERSTITIAL_UNIT_ID = "ca-app-pub-3940256099942544/1033173712";
+    private final String AD_APP_ID = "ca-app-pub-3288414679602977~3658835069";
+    private final String INTERSTITIAL_UNIT_ID = "ca-app-pub-3288414679602977/4651642095";
+    private GpgsClient googlePlayGamesClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +41,36 @@ public class AndroidLauncher extends AndroidApplication implements Services {
         config.useImmersiveMode = true;
         config.numSamples = 8;
         config.stencil = 0;
+        googlePlayGamesClient = new GpgsClient().initialize(this, false);
+        PewDew.gsClient = googlePlayGamesClient;
+        googlePlayGamesClient.setListener(new IGameServiceListener() {
+            @Override
+            public void gsOnSessionActive() {
+                PewDew.signedIn = true;
+                PewDew.playerName = googlePlayGamesClient.getPlayerDisplayName();
+                if(BuildConfig.DEBUG) Log.d("Android Launcher", "Google Play Games - OnSessionActive");
+            }
+
+            @Override
+            public void gsOnSessionInactive() {
+                PewDew.signedIn = false;
+                PewDew.playerName = "";
+                if(BuildConfig.DEBUG) Log.d("Android Launcher", "Google Play Games - OnSessionInactive");
+            }
+
+            @Override
+            public void gsShowErrorToUser(GsErrorType et, String msg, Throwable t) {
+                if(et == GsErrorType.errorLoginFailed)
+                    Toast.makeText(getApplicationContext(), "Login failed. Try Again ..", Toast.LENGTH_SHORT).show();
+                else if(et == GsErrorType.errorLogoutFailed)
+                    Toast.makeText(getApplicationContext(), "Logout failed. Try Again ..", Toast.LENGTH_SHORT).show();
+                else if(et == GsErrorType.errorServiceUnreachable) ;
+                    Toast.makeText(getApplicationContext(), "Cannot reach play games services ..", Toast.LENGTH_SHORT).show();
+                PewDew.signedIn = false;
+                PewDew.playerName = "";
+                if(BuildConfig.DEBUG) Log.d("Android Launcher", "Google Play Games - ShowErrorToUser");
+            }
+        });
         MobileAds.initialize(this, AD_APP_ID);
         initializeApp(new PewDew(), config);
     }
@@ -167,5 +203,11 @@ public class AndroidLauncher extends AndroidApplication implements Services {
                 }
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(googlePlayGamesClient != null)
+            googlePlayGamesClient.onGpgsActivityResult(requestCode, resultCode, data);
     }
 }

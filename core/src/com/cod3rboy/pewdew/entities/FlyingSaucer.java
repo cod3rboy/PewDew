@@ -114,7 +114,9 @@ public class FlyingSaucer extends SpaceObject {
         }
     }
 
+    public void setScore(int score) { this.score = score; }
     public int getScore() { return score; }
+
     public boolean shouldRemove() { return remove; }
     public Color getColor() { return color; }
 

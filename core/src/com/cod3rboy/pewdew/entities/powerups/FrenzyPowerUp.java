@@ -9,7 +9,7 @@ import com.cod3rboy.pewdew.PewDew;
 public class FrenzyPowerUp extends PowerUp{
     public static final int POWER_UP_FRENZY = 102;
     public FrenzyPowerUp(float x, float y, IPowerable player) {
-        super("Frenzy", x, y, player);
+        super("FRENZY", x, y, player);
         powerid = POWER_UP_FRENZY;
     }
     @Override

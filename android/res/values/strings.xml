@@ -3,4 +3,6 @@
 
     <string name="app_name">PewDew</string>
     <string name="share_msg">Wanna shoot 🔫 some asteroids in the space 🌌 ??\nTry this cool space shooting game ...\n\nTap on link to download now: https://play.google.com/store/apps/details?id=%s</string>
+    <!--Google Play Games Services Application ID-->
+    <string name="app_id">918967790111</string>
 </resources>

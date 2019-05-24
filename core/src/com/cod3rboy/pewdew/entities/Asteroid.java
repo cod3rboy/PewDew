@@ -75,6 +75,7 @@ public class Asteroid extends SpaceObject {
     public int getType() {
         return type;
     }
+    public void setScore(int score) { this.score = score; }
 
     public int getScore() { return score; }
 

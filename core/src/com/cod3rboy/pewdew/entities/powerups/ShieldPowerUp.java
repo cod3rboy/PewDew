@@ -9,7 +9,7 @@ import com.cod3rboy.pewdew.PewDew;
 public class ShieldPowerUp extends PowerUp {
     public static final int POWER_UP_SHIELD = 101;
     public ShieldPowerUp(float x, float y, IPowerable player) {
-        super("Shield", x, y, player);
+        super("SHIELD", x, y, player);
         powerid = POWER_UP_SHIELD;
     }
     @Override

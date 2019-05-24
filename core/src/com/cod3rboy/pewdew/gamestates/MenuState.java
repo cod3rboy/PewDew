@@ -1,6 +1,5 @@
 package com.cod3rboy.pewdew.gamestates;
 
-import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -34,7 +33,7 @@ public class MenuState extends GameState {
 
     private GlyphLayout gLayout;
 
-    private final String title = "PewDew";
+    private final String title = "PEWDEW";
     private int currentItem;
 
     private String[] menuItems;
@@ -65,6 +64,9 @@ public class MenuState extends GameState {
     // Rate button
     private Rectangle rateBtnBounds;
 
+    // Sign in/out button
+    private Rectangle signBtnBounds;
+
     public MenuState(GameStateManager gsm) {
         super(gsm);
     }
@@ -75,20 +77,20 @@ public class MenuState extends GameState {
         sr = new ShapeRenderer();
         sb = new SpriteBatch();
         FreeTypeFontGenerator.FreeTypeFontParameter param = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        FreeTypeFontGenerator gen = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Hyperspace Bold.ttf"));
-        param.size = 70;
+        FreeTypeFontGenerator gen = new FreeTypeFontGenerator(Gdx.files.internal("fonts/TitleFont.ttf"));
+        param.size = 80;
         param.color = Color.WHITE;
         titleFont = gen.generateFont(param);
-
+        gen = new FreeTypeFontGenerator(Gdx.files.internal("fonts/Hyperspace Bold.ttf"));
         param.size = 40;
         font = gen.generateFont(param);
 
         gLayout = new GlyphLayout();
 
         menuItems = new String[]{
-                "Play",
-                "High Scores",
-                "Quit"
+                "PLAY",
+                "HIGH SCORES",
+                "QUIT"
         };
         menuBounds = new HashMap<String, Rectangle>();
         for (int i = 0; i < menuItems.length; i++) {
@@ -123,6 +125,7 @@ public class MenuState extends GameState {
 
         shareBtnBounds = new Rectangle();
         rateBtnBounds = new Rectangle();
+        signBtnBounds = new Rectangle();
 
         if(GameStateManager.getMusicSetting() && !Jukebox.isPlayingBackgroundMusic("chronos")) {
             // Start background music
@@ -250,7 +253,7 @@ public class MenuState extends GameState {
         BitmapFont shareFont = musicFont; // Use same font for share btn as music btn
         shareFont.setColor(0,1,0,1);
         GlyphLayout shareLayout = musicFontLayout; // Use same glyphlayout for share btn as music btn
-        shareLayout.setText(shareFont, "Share Me");
+        shareLayout.setText(shareFont, "SHARE ME");
         shareBtnBounds.setWidth(shareLayout.width);
         shareBtnBounds.setHeight(shareLayout.height);
         shareBtnBounds.x = 10;
@@ -262,13 +265,33 @@ public class MenuState extends GameState {
         BitmapFont rateFont = musicFont; // Use same font for share btn as music btn
         shareFont.setColor(0,1,0,1);
         GlyphLayout rateLayout = musicFontLayout; // Use same glyphlayout for share btn as music btn
-        rateLayout.setText(rateFont, "Rate Me");
+        rateLayout.setText(rateFont, "RATE ME");
         rateBtnBounds.setWidth(rateLayout.width);
         rateBtnBounds.setHeight(rateLayout.height);
         rateBtnBounds.x = (PewDew.WIDTH-rateBtnBounds.width)/2;
 //        rateBtnBounds.y = PewDew.HEIGHT - rateBtnBounds.height - 15;
         rateBtnBounds.y = 15;
         rateFont.draw(sb,rateLayout,rateBtnBounds.x, rateBtnBounds.y + rateBtnBounds.height);
+
+        // Draw Sign Button
+        BitmapFont signFont = musicFont;
+        signFont.setColor(0,1,0,1);
+        GlyphLayout signLayout = musicFontLayout;
+        signLayout.setText(signFont, (!PewDew.signedIn) ? "SIGN IN" : "SIGN OUT");
+        signBtnBounds.setWidth(signLayout.width);
+        signBtnBounds.setHeight(signLayout.height);
+        signBtnBounds.x = PewDew.WIDTH-signBtnBounds.width-10;
+        signBtnBounds.y = PewDew.HEIGHT - signBtnBounds.height - 15;
+        signFont.draw(sb, signLayout, signBtnBounds.x, signBtnBounds.y + signBtnBounds.height);
+
+        // Draw Player name if signed in
+        if(PewDew.signedIn){
+            BitmapFont nameFont = musicFont;
+            nameFont.setColor(0,1,0,1);
+            GlyphLayout nameLayout = musicFontLayout;
+            nameLayout.setText(nameFont, PewDew.playerName);
+            signFont.draw(sb, nameLayout, 10, PewDew.HEIGHT - 15);
+        }
 
         sb.end();
     }
@@ -320,8 +343,7 @@ public class MenuState extends GameState {
             // Share Button Touch
             if(shareBtnBounds.contains(touchPoint.x, touchPoint.y)){
                 // Ensure platform is android
-                Application.ApplicationType type = Gdx.app.getType();
-                if(type != Application.ApplicationType.Android) return;
+                if(!PewDew.onAndroid) return;
                 Jukebox.play("menuselect");
                 ((Services) Gdx.app).share();
             }
@@ -329,10 +351,24 @@ public class MenuState extends GameState {
             // Rate Button Touch
             if(rateBtnBounds.contains(touchPoint.x, touchPoint.y)){
                 // Ensure platform is android
-                Application.ApplicationType type = Gdx.app.getType();
-                if(type != Application.ApplicationType.Android) return;
+                if(!PewDew.onAndroid) return;
                 Jukebox.play("menuselect");
                 ((Services) Gdx.app).rate();
+            }
+
+            // Sign Button Touch
+            if(signBtnBounds.contains(touchPoint.x, touchPoint.y)){
+                // Ensure platform is android
+                if(!PewDew.onAndroid) return;
+                Jukebox.play("menuselect");
+                // Todo : Sign in to Google Play Games
+                if (PewDew.gsClient.isSessionActive()) {
+                    PewDew.gsClient.logOff();
+                }else {
+                    PewDew.gsClient.logIn();
+                }
+//                if(!PewDew.signedIn) PewDew.gsClient.logIn();
+//                else PewDew.gsClient.logOff();
             }
 
         }

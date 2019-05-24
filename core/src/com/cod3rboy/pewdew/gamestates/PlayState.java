@@ -101,6 +101,11 @@ public class PlayState extends GameState {
     private float animTime = 2; // 2 Secs
     private BitmapFont levelFont;
 
+    // Scores
+    private int fsLargeScore, fsSmallScore;
+    private int sAsterScore, mAsterScore, lAsterScore;
+    private int wsDamageScore;
+
     public PlayState(GameStateManager gsm) {
         super(gsm);
     }
@@ -110,6 +115,14 @@ public class PlayState extends GameState {
 
     @Override
     public void init() {
+        // Set initial kill points
+        fsLargeScore = FlyingSaucer.largeScore;
+        fsSmallScore = FlyingSaucer.smallScore;
+        sAsterScore = Asteroid.smallScore;
+        mAsterScore = Asteroid.mediumScore;
+        lAsterScore = Asteroid.largeScore;
+        wsDamageScore = Warship.damageScore;
+
         sr = new ShapeRenderer();
         sb = new SpriteBatch();
         stars = new float[STARS_COUNT][2];
@@ -193,15 +206,15 @@ public class PlayState extends GameState {
     private void levelUp() {
         level++;
         fsTime--;
-        FlyingSaucer.largeScore += 0.1 * FlyingSaucer.largeScore;
-        FlyingSaucer.smallScore += 0.1 * FlyingSaucer.smallScore;
-        Asteroid.smallScore += 0.1 * Asteroid.smallScore;
-        Asteroid.mediumScore += 0.1 * Asteroid.mediumScore;
-        Asteroid.largeScore += 0.1 * Asteroid.largeScore;
-        powerSpawnDelay += level;
+        fsLargeScore += 0.1 * fsLargeScore;
+        fsSmallScore += 0.1 * fsSmallScore;
+        sAsterScore += 0.1 * sAsterScore;
+        mAsterScore += 0.1 * mAsterScore;
+        lAsterScore += 0.1 * lAsterScore;
+        powerSpawnDelay++;
         if (level > 5) {
             wsTime--;
-            Warship.damageScore += 0.1 * Warship.damageScore;
+            wsDamageScore += 0.1 * wsDamageScore;
         }
     }
 
@@ -228,13 +241,21 @@ public class PlayState extends GameState {
         numAsteroidsLeft--;
         currentDelay = ((maxDelay - minDelay) * numAsteroidsLeft / totalAsteroids) + minDelay;
         if (a.getType() == Asteroid.LARGE) {
-            asteroids.add(new Asteroid(a.getX(), a.getY(), Asteroid.MEDIUM));
-            asteroids.add(new Asteroid(a.getX(), a.getY(), Asteroid.MEDIUM));
+            Asteroid a1 = new Asteroid(a.getX(), a.getY(), Asteroid.MEDIUM);
+            Asteroid a2 = new Asteroid(a.getX(), a.getY(), Asteroid.MEDIUM);
+            a1.setScore(mAsterScore);
+            a2.setScore(mAsterScore);
+            asteroids.add(a1);
+            asteroids.add(a2);
         }
 
         if (a.getType() == Asteroid.MEDIUM) {
-            asteroids.add(new Asteroid(a.getX(), a.getY(), Asteroid.SMALL));
-            asteroids.add(new Asteroid(a.getX(), a.getY(), Asteroid.SMALL));
+            Asteroid a1 = new Asteroid(a.getX(), a.getY(), Asteroid.SMALL);
+            Asteroid a2 = new Asteroid(a.getX(), a.getY(), Asteroid.SMALL);
+            a1.setScore(sAsterScore);
+            a2.setScore(sAsterScore);
+            asteroids.add(a1);
+            asteroids.add(a2);
         }
     }
 
@@ -259,7 +280,9 @@ public class PlayState extends GameState {
                 dy = y - player.getY();
                 dist = (float) Math.sqrt(dx * dx + dy * dy);
             }
-            asteroids.add(new Asteroid(x, y, Asteroid.LARGE));
+            Asteroid a = new Asteroid(x, y, Asteroid.LARGE);
+            a.setScore(lAsterScore);
+            asteroids.add(a);
         }
     }
 
@@ -370,6 +393,7 @@ public class PlayState extends GameState {
                 float randX = 0, randY = 0;
                 // Spawn warship here
                 warship = new Warship(randDir, 0, 0, player, enemyBullets);
+                warship.setDamageScore(wsDamageScore);
                 switch (randDir) {
 
                     case DIRECTION_LEFT:
@@ -406,6 +430,10 @@ public class PlayState extends GameState {
                 int type = (MathUtils.random() < 0.5) ? FlyingSaucer.SMALL : FlyingSaucer.LARGE;
                 int direction = MathUtils.random() < 0.5 ? FlyingSaucer.RIGHT : FlyingSaucer.LEFT;
                 flyingSaucer = new FlyingSaucer(type, direction, player, enemyBullets);
+
+                if(flyingSaucer.getType() == FlyingSaucer.SMALL) flyingSaucer.setScore(fsSmallScore);
+                else if(flyingSaucer.getType() == FlyingSaucer.LARGE) flyingSaucer.setScore(fsLargeScore);
+
                 if (!isGamePaused()) {
                     if (flyingSaucer.getType() == FlyingSaucer.LARGE) {
                         Jukebox.loop("largesaucer", 0.7f);
@@ -726,14 +754,14 @@ public class PlayState extends GameState {
         // draw score
         font.setColor(1, 1, 1, 1);
         sb.begin();
-        font.draw(sb, String.format("Score : %d", player.getScore()), 40, 420);
-        font.draw(sb, "Lives : ", 40, 390);
-        gLayout.setText(font, String.format("Level - %-4d", level));
+        font.draw(sb, String.format("SCORE : %d", player.getScore()), 40, 420);
+        font.draw(sb, "LIVES : ", 40, 390);
+        gLayout.setText(font, String.format("LEVEL - %-4d", level));
         font.draw(sb, gLayout, PewDew.WIDTH / 2 - gLayout.width / 2, 420);
 
         // Draw Level
         if (!gamePaused && animLevel) {
-            gLayout.setText(levelFont, String.format("Level - %d", level));
+            gLayout.setText(levelFont, String.format("LEVEL - %d", level));
             levelFont.draw(sb, gLayout, (PewDew.WIDTH - gLayout.width) / 2, (PewDew.HEIGHT + gLayout.height) / 2);
         }
 
@@ -741,12 +769,12 @@ public class PlayState extends GameState {
         if (isGamePaused()) {
             // Draw Game Paused Text
             pausedFont.setColor(0, 1, 0, 1);
-            gLayout.setText(pausedFont, (!firstTouched) ? "Tap to Play" : "Play to Resume");
+            gLayout.setText(pausedFont, (!firstTouched) ? "TAP TO PLAY" : "PLAY TO RESUME");
             pausedFont.draw(sb, gLayout, (PewDew.WIDTH - gLayout.width) / 2, PewDew.HEIGHT * .7f);
 
             if (firstTouched) {
                 // Draw Exit Button
-                gLayout.setText(exitFont, "Exit");
+                gLayout.setText(exitFont, "EXIT");
                 exitBounds.width = gLayout.width;
                 exitBounds.height = gLayout.height;
                 exitBounds.x = (PewDew.WIDTH - exitBounds.width) / 2;
@@ -762,16 +790,16 @@ public class PlayState extends GameState {
             } else {
                 // Draw Controller sticks info
                 font.setColor(1, 1, 1, 1);
-                gLayout.setText(font, "Drag to move ship");
+                gLayout.setText(font, "DRAG TO MOVE SHIP");
                 font.draw(sb, gLayout, 20, 10 + gLayout.height);
-                gLayout.setText(font, (controller.isRightStickFixed() ? "Hold to shoot" : "Hold and drag to shoot"));
+                gLayout.setText(font, (controller.isRightStickFixed() ? "HOLD TO SHOOT" : "HOLD AND DRAG TO SHOOT"));
                 font.draw(sb, gLayout, PewDew.WIDTH - 20 - gLayout.width, 10 + gLayout.height);
 
                 // Draw Cannon Button
                 gLayout.setText(cannonBtnFont,
                         (
                                 controller.isRightStickFixed() ?
-                                        String.format("%-16s", "Cannon : TIP") : "Cannon : R-Stick"
+                                        String.format("%-16s", "CANNON : TIP") : "CANNON : R-STICK"
                         )
                 );
                 cannonBtnBounds.width = gLayout.width;

@@ -27,7 +27,8 @@ public class Warship extends SpaceObject {
     private float shootTimer = 0;
     private float shootTime = 1.5f;
 //    private long score = 5000; // 5000 kill points
-    public static long damageScore = 100;
+    public static int damageScore = 100;
+    private int score;
     private Color color;
     private Color thrusterColor;
     private float flashTimer = 0;
@@ -102,6 +103,8 @@ public class Warship extends SpaceObject {
 
         speed = 50;
 
+        this.score = damageScore;
+
         this.health = MAX_HEALTH;
     }
 
@@ -129,7 +132,8 @@ public class Warship extends SpaceObject {
     public float getHealth() { return health; }
     public float getMaxHealth() { return MAX_HEALTH; }
 //    public long getScore() { return score; }
-    public long getDamageScore() { return damageScore; }
+    public void setDamageScore(int score) { this.score = score; }
+    public int getDamageScore() { return this.score; }
 
     public float getSpeed() { return this.speed; }
 
